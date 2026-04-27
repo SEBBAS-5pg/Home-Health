@@ -1,3 +1,10 @@
+---
+status: Approved
+last_updated: 2026-04-27
+related_components: [api, db]
+release_version: 1.0.0
+---
+
 # 🏛️ Modelo Entidad-Relación (MER) Técnico - Home-Health
 
 Este documento describe la arquitectura de datos híbrida para el proyecto **Home-Health**. El modelo está optimizado para su implementación con **Prisma ORM** y sigue principios de **Clean Code** en la nomenclatura de atributos, garantizando escalabilidad y mantenibilidad.
@@ -128,8 +135,8 @@ erDiagram
         string tags
     }
 
-    MONGODB_CATALOG .. ORDER_ITEM : "Referencia Desacoplada"
-    MONGODB_CATALOG .. INVENTORY : "Sincronización de Stock"
+    MONGODB_CATALOG ||..o{ ORDER_ITEM : "Referencia Desacoplada"
+    MONGODB_CATALOG ||..|| INVENTORY : "Sincronización de Stock"
 ```
 
 ---
