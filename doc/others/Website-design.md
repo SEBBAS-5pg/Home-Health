@@ -2,90 +2,50 @@
 
 ## Control de Versiones
 
-| Versión | Fecha | Autor | Descripción de Cambios |
-| :---: | :---: | :---: | :--- |
-| **1.0.0** | 2026-04-21 | SDD Agent | Creación del documento base de UI/UX y Diseño |
+|  Versión  |     Fecha      |     Autor     | Descripción de Cambios                                             |
+| :-------: | :------------: | :-----------: | :----------------------------------------------------------------- |
+|   1.0.0   |   2026-04-21   |   SDD Agent   | Creación del documento base de UI/UX y Diseño                      |
+| **1.1.0** | **2026-04-27** | **Da vincii** | **Actualización de paleta de colores (Estrategia High-end Clean)** |
 
 ---
-
-## 1. Introducción
-Este documento define las directrices y requerimientos de diseño de interfaces de usuario (UI) y experiencia de usuario (UX) para el proyecto Home-Health. Su objetivo es mantener la consistencia visual, accesibilidad y estandarización de componentes a lo largo de toda la plataforma web.
 
 ## 2. Identidad Visual
 
-### 2.1 Paleta de Colores
-*Consolidar aquí los colores que darán vida a la plataforma. Definir códigos HEX y su propósito.*
+### 2.1 Paleta de Colores (Brand Palette)
 
-- **Brand / Primario:** `#000000` (Ejm: Botones principales, enlaces relevantes)
-- **Secundario:** `#000000` (Ejm: Elementos de apoyo, badges)
-- **Fondos (Backgrounds):** Principal `#FFFFFF`, Secundario `#F3F4F6`
-- **Textos (Typography):** Principal `#111827`, Secundario `#6B7280`
-- **Estados (Feedback):** 
-  - Éxito (Success): `#10B981`
-  - Error (Danger): `#EF4444`
-  - Advertencia (Warning): `#F59E0B`
-  - Información (Info): `#3B82F6`
+La selección cromática busca transmitir modernidad, exclusividad y confianza, alejándose de los verdes tradicionales de salud para adoptar un tono "Boutique Wellness".
 
-### 2.2 Tipografía
-*Especificar las familias tipográficas, jerarquías, pesos y tamaños recomendados.*
+```mermid
+graph LR
+    subgraph "Brand Palette"
+        C1[Action: #7D18E5]
+        C2[Soft Accent: #B085F5]
+        C3[Text/Dark: #1E293B]
+        C4[Surface/BG: #F1F5F9]
+    end
 
-- **Fuente Principal (Sans-serif):** (Ej. Inter, Roboto, u Outfit) - Uso general de UI y lectura.
-- **Fuente Secundaria / Monospace:** (Ej. Fira Code) - Snippets y datos tabulares.
-- **Jerarquía:**
-  - H1: Bold, 2rem (32px)
-  - H2: SemiBold, 1.5rem (24px)
-  - Párrafo/Body: Regular, 1rem (16px)
-  - Small: Regular, 0.875rem (14px)
 
-## 3. Requerimientos de UI/UX
 
-### 3.1 Disposición y Responsive Design
-*Detallar el comportamiento de la interfaz adaptativa.*
+    style C1 fill:#7D18E5,color:#fff,stroke:#333,stroke-width:2px
+    style C2 fill:#B085F5,color:#000,stroke:#333,stroke-width:1px
+    style C3 fill:#1E293B,color:#fff,stroke:#333,stroke-width:1px
+    style C4 fill:#F1F5F9,color:#000,stroke:#333,stroke-width:1px
+```
 
-- **Breakpoints (Tailwind por defecto):**
-  - **sm:** 640px (Móviles en apaisado)
-  - **md:** 768px (Tablets)
-  - **lg:** 1024px (Laptops)
-  - **xl:** 1280px (Escritorio)
-- **Espaciado y Márgenes:** Uso del sistema de espaciado estándar (ej. escala de 4px: `p-4`, `m-2`).
+- **Brand / Primario (Action):** `#7D18E5`
+  - _Uso:_ Botones de compra (CTA), estados activos, elementos de marca destacados. Representa la tecnología y la salud premium.
+- **Brand / Secundario (Soft Accent):** `#B085F5`
+  - _Uso:_ Fondos de badges, estados de hover (pasado de ratón), acentos sutiles en tarjetas de producto.
+- **Textos / Primario (Slate Dark):** `#1E293B`
+  - _Uso:_ Títulos, cuerpo de texto principal y navegación. Asegura una lectura descansada y profesional.
+- **Fondos / Superficies (Surface):** `#F1F5F9`
+  - _Uso:_ Fondo general de la aplicación. Proporciona limpieza visual y permite que los productos resalten sin ruido.
 
-### 3.2 Sistema de Componentes
-*Especificación de componentes recurrentes.*
+### 2.2 Estados de Feedback (Semantic Colors)
 
-- **Botones:** Estados requeridos (Default, Hover, Active, Disabled, Loading).
-- **Entradas de Datos (Inputs):** Estilos de 'Focus', validaciones (Error/Success), placeholders.
-- **Navegación:** Comportamiento del Navbar (Sticky/Fixed) y menús laterales (Mobile drawer).
-- **Tarjetas (Cards):** Sombras e interacciones por defecto, bordes y paddings uniformes.
+_Se mantienen los colores estándar de la industria para garantizar la curva de aprendizaje del usuario._
 
-## 4. Interacciones y Animaciones
-*Describir la "vida" de la aplicación, cómo responde el sistema fluidamente a las acciones del usuario.*
-
-- **Micro-interacciones:** Hover en botones/links, outline focus para navegación con teclado.
-- **Transiciones y Tiempos:** Duración recomendada de `150ms` a `300ms` usando curvas `ease-in-out` para suavidad.
-- **Estados de Carga (Loading States):** Preferencia por Skeletons (Tremor/Tailwind) antes que el uso excesivo de spinners completos, dando la sensación de mayor velocidad.
-- **Notificaciones (Toasts):** Aparición desde la esquina superior/inferior derecha con auto-dismiss a los 3-5 segundos.
-
-## 5. Accesibilidad (a11y)
-*Lineamientos necesarios para asegurar que la app sea utilizable por todos.*
-
-- **Contraste de Color:** Asegurar que los textos sobre fondos cumplan la norma WCAG AA (Mínimo 4.5:1).
-- **Navegación Asistida:** Soporte completo de uso mediante tecla `TAB` (Tabindex visible y lógico).
-- **Lectores de Pantallas:** Uso de etiquetas semánticas (`<header>`, `<nav>`, `<main>`, `<article>`) y atributos `aria-label` en controles donde el icono es la única información visual.
-
-## 6. Recursos, Assets e Integración
-*Configuración y bibliotecas base del frontend basadas en los lineamientos (Tailwind CSS, Tremor).*
-
-- **Íconos:** Biblioteca definida (Ej. Lucide React, Heroicons).
-- **Imágenes:** Definir formato de imágenes (WebP) y política de tamaños.
-- **UI Kits externos:** (Ej. Tremor para dashboards y analíticas).
-
----
-
-## 7. Mejoras Futuras / Backlog de Diseño
-*Sección abierta para listar propuestas visuales o refactorizaciones de componentes pendientes para próximas versiones.*
-
-- [ ] Aprobar y rellenar la paleta de colores.
-- [ ] Definir biblioteca de iconos.
-- [ ] Diseñar el componente Skeleton Global.
-
-> **Nota de Evolución:** Este documento forma parte de la documentación viva. Cualquier iteración, rediseño o ajuste estratégico en la interfaz, deberá sumarse mediante nuevas versiones documentadas en la tabla inicial para garantizar el control sobre la experiencia del usuario de todo el equipo de desarrollo.
+- **Éxito (Success):** `#10B981` (Venta completada, receta validada).
+- **Error (Danger):** `#EF4444` (Stock agotado, error en pago).
+- **Advertencia (Warning):** `#F59E0B` (Envío retrasado).
+- **Información (Info):** `#3B82F6` (Nuevas políticas).
