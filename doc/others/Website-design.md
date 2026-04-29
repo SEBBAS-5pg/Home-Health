@@ -15,7 +15,7 @@
 
 La selección cromática busca transmitir modernidad, exclusividad y confianza, alejándose de los verdes tradicionales de salud para adoptar un tono "Boutique Wellness".
 
-```mermid
+```mermaid
 graph LR
     subgraph "Brand Palette"
         C1[Action: #7D18E5]
