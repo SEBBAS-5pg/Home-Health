@@ -68,7 +68,7 @@ El sistema aplica principios de **Arquitectura Limpia** con separación clara de
 - Modelado con el marco **C4** (niveles 1, 2 y 3)
 - Contenedores Docker para cada capa del sistema
 
-> Ver documentación completa en [`/docs/01-arquitectura/`](./docs/01-arquitectura/)
+> Ver documentación completa en [`/docs/03-arquitectura/`](./docs/03-arquitectura/)
 
 ---
 
@@ -116,7 +116,7 @@ docker-compose up --build
 
 | Documento | Ruta |
 |-----------|------|
-| 📊 Informe de Proyecto de Aula | [`/docs/Informe-Proyecto-Aula.xlsx`](./docs/Informe-Proyecto-Aula.xlsx) |
+| 📊 Informe de Proyecto de Aula | [`/docs/INFORME DE PROYECTO DE AULA.xlsx`](./docs/INFORME DE PROYECTO DE AULA.xlsx) |
 | 📖 Historias de Usuario y Storymaps | [`/docs/01-historias-de-usuario/`](./docs/01-historias-de-usuario/) |
 | 🗃️ Modelo Entidad-Relación | [`/docs/02-base-de-datos/`](./docs/02-base-de-datos/) |
 | 🏛️ ADR, C4 e Infraestructura | [`/docs/03-arquitectura/`](./docs/03-arquitectura/) |
@@ -132,4 +132,3 @@ docker-compose up --build
 |------|-------------|-------|--------|
 | **Hito 1** | ADR · MER · HU · Storymaps · API docs | 11 de mayo de 2026 | ⏳ En progreso |
 | **Hito 2** | Sistema funcional desplegado en AWS | 20–25 de mayo de 2026 | 🔜 Pendiente |
-```
