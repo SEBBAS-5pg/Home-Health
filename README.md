@@ -116,7 +116,7 @@ docker-compose up --build
 
 | Documento | Ruta |
 |-----------|------|
-| 📊 Informe de Proyecto de Aula | [`/docs/INFORME DE PROYECTO DE AULA.xlsx`](./docs/INFORME DE PROYECTO DE AULA.xlsx) |
+| 📊 Informe de Proyecto de Aula | [`/docs/INFORME DE PROYECTO DE AULA.xlsx`](./docs/INFORME%20DE%20PROYECTO%20DE%20AULA.xlsx) |
 | 📖 Historias de Usuario y Storymaps | [`/docs/01-historias-de-usuario/`](./docs/01-historias-de-usuario/) |
 | 🗃️ Modelo Entidad-Relación | [`/docs/02-base-de-datos/`](./docs/02-base-de-datos/) |
 | 🏛️ ADR, C4 e Infraestructura | [`/docs/03-arquitectura/`](./docs/03-arquitectura/) |
