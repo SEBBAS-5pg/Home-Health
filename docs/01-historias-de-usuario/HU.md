@@ -2,9 +2,10 @@
 
 ## Control de Versiones
 
-| Versión | Fecha      | Descripción                                                                                 | Responsables                                      |
-| :------ | :--------- | :------------------------------------------------------------------------------------------ | :------------------------------------------------ |
-| 1.0     | 01/05/2026 | Levantamiento inicial de necesidades de usuarios y definición de historias de usuario.      | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| Versión | Fecha      | Descripción                                                                                                  | Responsables                                      |
+| :------ | :--------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------ |
+| 1.0     | 01/05/2026 | Levantamiento inicial de necesidades de usuarios y definición de historias de usuario.                       | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 1.1     | 09/05/2026 | Refinamiento de historias de usuario, criterios de aceptación y reorganización de módulos funcionales.      | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 
 ---
 
@@ -29,13 +30,12 @@
 | **HU06** | Cliente                 | Explorar el catálogo de productos con nombre, categoría, precio, stock y descripción                 | Encontrar y comparar fácilmente los medicamentos que necesito.                          | Alta      |
 | **HU07** | Administrador           | Crear, editar y eliminar productos del catálogo con todos sus campos                                 | Mantener el catálogo de medicamentos actualizado y disponible para los clientes.        | Alta      |
 | **HU08** | Administrador           | Registrar movimientos de inventario (entradas y salidas) indicando producto, tipo y cantidad         | Llevar un historial preciso del stock disponible.                                       | Alta      |
-| **HU09** | Administrador           | Ver una alerta visual cuando el stock de un producto sea igual o menor a 5 unidades                  | Tomar decisiones de reabastecimiento antes de quedarme sin stock.                       | Alta      |
-| **HU10** | Cliente                 | Agregar productos al carrito e indicar dirección de entrega para registrar un pedido                 | Que la farmacia reciba y procese mi solicitud con la información completa.              | Alta      |
-| **HU11** | Cliente                 | Ver el historial de mis pedidos con su fecha, productos, cantidades y estado actual                  | Hacer seguimiento a mis solicitudes en todo momento.                                    | Alta      |
-| **HU12** | Administrador           | Ver todos los pedidos y cambiar su estado siguiendo el flujo definido                                | Gestionar el ciclo completo de despacho y entrega de las solicitudes.                   | Alta      |
-| **HU13** | Administrador           | Ver un listado de productos con fecha de vencimiento dentro de los próximos 30 días                  | Actuar antes de que los productos venzan y generen pérdidas.                            | Alta      |
-| **HU14** | Administrador           | Generar y exportar reportes de inventario y pedidos filtrando por fecha                              | Contar con información consolidada para la toma de decisiones.                          | Media     |
-| **HU15** | Administrador           | Recibir notificaciones internas automáticas por stock bajo, vencimientos y nuevos pedidos            | Estar informado de eventos críticos sin tener que revisar cada módulo manualmente.      | Media     |
+| **HU09** | Cliente                 | Agregar productos al carrito e indicar dirección de entrega para registrar un pedido                 | Que la farmacia reciba y procese mi solicitud con la información completa.              | Alta      |
+| **HU10** | Cliente                 | Ver el historial de mis pedidos con su fecha, productos, cantidades y estado actual                  | Hacer seguimiento a mis solicitudes en todo momento.                                    | Alta      |
+| **HU11** | Administrador           | Ver todos los pedidos y cambiar su estado siguiendo el flujo definido                                | Gestionar el ciclo completo de despacho y entrega de las solicitudes.                   | Alta      |
+| **HU12** | Administrador           | Ver un listado de productos con fecha de vencimiento dentro de los próximos 30 días                  | Actuar antes de que los productos venzan y generen pérdidas.                            | Alta      |
+| **HU13** | Administrador           | Generar y exportar reportes de inventario y pedidos filtrando por fecha                              | Contar con información consolidada para la toma de decisiones.                          | Media     |
+| **HU14** | Administrador           | Recibir y visualizar notificaciones dentro de la plataforma sobre stock bajo, productos vencidos y nuevos pedidos            | Estar informado sobre eventos importantes del sistema desde un único lugar sin tener que revisar cada módulo manualmente.      | Alta     |
 
 ---
 
@@ -165,7 +165,7 @@ Escenario: Guardar sin realizar cambios
 
 ---
 
-### HU05 — Gestión de usuarios (Administrador)
+### HU05 — Consulta de usuarios (Administrador)
 
 ```gherkin
 Escenario: Listado de usuarios registrados
@@ -279,24 +279,7 @@ Escenario: Visualización del historial de movimientos
 
 ---
 
-### HU09 — Alerta de stock bajo
-
-```gherkin
-Escenario: Producto con stock bajo resaltado en el panel
-  Dado que el stock actual de un producto es menor o igual a 5 unidades
-  Cuando el administrador accede a /admin/inventory o /admin/dashboard
-  Entonces el sistema muestra ese producto con una etiqueta visual "Stock bajo"
-  Y lo lista en la sección de alertas del dashboard
-
-Escenario: Producto sin alerta cuando el stock es suficiente
-  Dado que el stock de un producto es mayor a 5 unidades
-  Cuando el administrador accede a /admin/inventory o /admin/dashboard
-  Entonces el sistema no muestra ninguna etiqueta de alerta para ese producto
-```
-
----
-
-### HU10 — Registro de pedido
+### HU09 — Registro de pedido
 
 ```gherkin
 Escenario: Agregar producto al carrito
@@ -331,7 +314,7 @@ Escenario: Confirmar pedido sin ingresar dirección de entrega
 
 ---
 
-### HU11 — Seguimiento de pedido
+### HU10 — Seguimiento de pedido
 
 ```gherkin
 Escenario: Visualización del historial de pedidos
@@ -352,7 +335,7 @@ Escenario: Sin pedidos registrados
 
 ---
 
-### HU12 — Gestión de pedidos (Administrador)
+### HU11 — Gestión de pedidos (Administrador)
 
 ```gherkin
 Escenario: Listado de todos los pedidos
@@ -401,7 +384,7 @@ Escenario: Intento de retroceder el estado de un pedido
 
 ---
 
-### HU13 — Control de fechas de vencimiento
+### HU12 — Control de fechas de vencimiento
 
 ```gherkin
 Escenario: Listado de productos próximos a vencer
@@ -423,7 +406,7 @@ Escenario: Sin productos por vencer ni vencidos
 
 ---
 
-### HU14 — Generación de reportes
+### HU13 — Generación de reportes
 
 ```gherkin
 Escenario: Generación de reporte de inventario actual
@@ -458,16 +441,16 @@ Escenario: Rango de fechas inválido
 
 ---
 
-### HU15 — Notificaciones internas
+### HU14 — Centro de notificaciones
 
 ```gherkin
 Escenario: Notificación automática por stock bajo
   Dado que el stock de un producto cae a 5 unidades o menos como resultado de un movimiento de salida o de la aceptación de un pedido
-  Entonces el sistema genera automáticamente una notificación interna con el mensaje "Stock bajo: [nombre del producto] tiene [X] unidades disponibles"
+  Entonces el sistema genera automáticamente una notificación con el mensaje "Stock bajo: [nombre del producto] tiene [X] unidades disponibles"
   Y el ícono de notificaciones en la barra de navegación muestra el contador actualizado
 
 Escenario: Notificación automática por producto vencido
-  Dado que la fecha actual supera la fecha de vencimiento registrada de un producto
+  Dado que existe un producto cuya fecha de vencimiento ya expiró
   Entonces el sistema genera una notificación con el mensaje "Producto vencido: [nombre del producto] venció el [fecha]"
   Y el ícono de notificaciones en la barra de navegación muestra el contador actualizado
 

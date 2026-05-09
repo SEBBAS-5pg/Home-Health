@@ -40,7 +40,7 @@ El sistema cuenta con **8 servicios REST** independientes:
 | 3 | **Productos** | Catálogo de medicamentos con categorías y búsqueda |
 | 4 | **Inventario** | Control de stock, entradas y salidas de productos |
 | 5 | **Pedidos** | Registro y seguimiento de solicitudes con estados |
-| 6 | **Vencimientos** | Alertas sobre productos próximos a vencer |
+| 6 | **Vencimientos** | Monitoreo y alertas de productos próximos a vencer |
 | 7 | **Reportes** | Informes de movimientos, stock e historial de pedidos |
 | 8 | **Notificaciones** | Avisos internos por stock bajo, vencimientos y pedidos |
 
