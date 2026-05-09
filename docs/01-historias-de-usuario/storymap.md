@@ -47,4 +47,4 @@ Las actividades definidas en el Story Map dieron origen a los módulos funcional
 
 Cada tarea del Story Map se encuentra asociada a una o más Historias de Usuario documentadas en:
 
-[`/docs/01-historias-de-usuario/HU.md`](./docs/01-historias-de-usuario/HU.md)
+[`/docs/01-historias-de-usuario/HU.md`](./HU.md)
