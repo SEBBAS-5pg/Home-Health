@@ -37,7 +37,7 @@ El sistema cuenta con **8 servicios REST** independientes:
 |---|----------|-------------|
 | 1 | **Autenticación** | Registro, login y control de acceso mediante JWT |
 | 2 | **Usuarios** | Gestión de perfiles y datos de clientes y administradores |
-| 3 | **Productos** | Catálogo de medicamentos con categorías y búsqueda |
+| 3 | **Productos** | Gestión del catálogo de medicamentos, categorías y búsqueda |
 | 4 | **Inventario** | Control de stock, entradas y salidas de productos |
 | 5 | **Pedidos** | Registro y seguimiento de solicitudes con estados |
 | 6 | **Vencimientos** | Monitoreo y alertas de productos próximos a vencer |
@@ -64,9 +64,13 @@ El sistema cuenta con **8 servicios REST** independientes:
 El sistema aplica principios de **Arquitectura Limpia** con separación clara de responsabilidades:
 
 - Principios **SOLID** y **Clean Code** en toda la base de código
-- Patrones de diseño: **Repository**, **State**, **Strategy**
-- Modelado con el marco **C4** (niveles 1, 2 y 3)
-- Contenedores Docker para cada capa del sistema
+- Patrones de diseño: **Repository**, **State** y **Strategy**
+- Modelado arquitectónico mediante el marco **C4** (niveles 1, 2 y 3)
+- Contenedores Docker para la contenerización y despliegue de la solución
+
+La solución se implementa inicialmente como un **monolito modular**, organizado por dominios funcionales mediante módulos REST desacoplados.
+
+Esta aproximación permite mantener simplicidad en el despliegue del MVP, facilitando al mismo tiempo la escalabilidad y una futura evolución hacia arquitecturas más distribuidas si el dominio del sistema lo requiere.
 
 > Ver documentación completa en [`/docs/03-arquitectura/`](./docs/03-arquitectura/)
 
@@ -89,7 +93,8 @@ home-health/
 │   ├── 03-arquitectura/           # ADR, C4, infraestructura AWS
 │   ├── 04-api/                    # Documentación de los 8 servicios
 │   ├── 05-aws/                    # Permisos IAM y precios
-│   └── 06-mockups/                # Vistas renderizadas
+│   ├── 06-mockups/                # Vistas renderizadas
+│   └── imagenes/                  # Soporte visual de la documentación
 └── docker-compose.yml
 ```
 

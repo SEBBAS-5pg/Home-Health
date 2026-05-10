@@ -21,8 +21,9 @@ El objetivo del MER es garantizar:
 
 | Versión | Fecha | Descripción | Responsables |
 | :-- | :-- | :-- | :-- |
-| 1.0 | 01/05/2026 | Definición inicial de entidades y relaciones del sistema | Sebastian Puentes, Karina Cantillo, Danay Pereira |
-| 2.0 | 09/05/2026 | Refinamiento del MER alineado con historias de usuario, servicios REST y MVP del proyecto | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 1.0 | 01/05/2026 | Definición inicial de entidades y relaciones del sistema. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 2.0 | 09/05/2026 | Refinamiento del MER alineado con historias de usuario, servicios REST y MVP del proyecto. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 2.1 | 10/05/2026 | Incorporación de la entidad `Category`, ajustes de relaciones, definición de consideraciones técnicas y alineación arquitectónica con el modelo de dominio. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 
 ---
 
@@ -41,7 +42,7 @@ La arquitectura de persistencia se encuentra alineada con los servicios REST def
 | :-- | :-- |
 | Autenticación | User |
 | Usuarios | User |
-| Productos | Product |
+| Productos | Product, Category |
 | Inventario | InventoryMovement |
 | Pedidos | Order, OrderItem |
 | Vencimientos | Product |
@@ -69,7 +70,20 @@ Representa los usuarios autenticados del sistema.
 
 ---
 
-## 2. Product
+## 2. Category
+
+Representa las categorías utilizadas para clasificar los medicamentos del catálogo.
+
+| Campo | Tipo |
+| :-- | :-- |
+| id | UUID |
+| name | VARCHAR |
+| created_at | TIMESTAMP |
+| updated_at | TIMESTAMP |
+
+---
+
+## 3. Product
 
 Representa los medicamentos disponibles en el catálogo.
 
@@ -77,7 +91,7 @@ Representa los medicamentos disponibles en el catálogo.
 | :-- | :-- |
 | id | UUID |
 | name | VARCHAR |
-| category | VARCHAR |
+| category_id | UUID (FK) |
 | description | TEXT |
 | price | DECIMAL |
 | stock | INTEGER |
@@ -87,7 +101,7 @@ Representa los medicamentos disponibles en el catálogo.
 
 ---
 
-## 3. InventoryMovement
+## 4. InventoryMovement
 
 Registra entradas y salidas de inventario.
 
@@ -103,7 +117,7 @@ Registra entradas y salidas de inventario.
 
 ---
 
-## 4. Order
+## 5. Order
 
 Representa los pedidos realizados por los clientes.
 
@@ -118,7 +132,7 @@ Representa los pedidos realizados por los clientes.
 
 ---
 
-## 5. OrderItem
+## 6. OrderItem
 
 Representa los productos contenidos dentro de un pedido.
 
@@ -132,13 +146,14 @@ Representa los productos contenidos dentro de un pedido.
 
 ---
 
-## 6. Notification
+## 7. Notification
 
 Representa las notificaciones internas del sistema.
 
 | Campo | Tipo |
 | :-- | :-- |
 | id | UUID |
+| user_id | UUID (FK) |
 | type | ENUM (LOW_STOCK, EXPIRATION, NEW_ORDER) |
 | title | VARCHAR |
 | message | TEXT |
@@ -152,9 +167,11 @@ Representa las notificaciones internas del sistema.
 | Relación | Cardinalidad |
 | :-- | :-- |
 | User → Order | 1:N |
+| User → Notification | 1:N |
 | Order → OrderItem | 1:N |
 | Product → OrderItem | 1:N |
 | Product → InventoryMovement | 1:N |
+| Category → Product | 1:N |
 
 ---
 
@@ -167,6 +184,8 @@ erDiagram
     USER ||--o{ NOTIFICATION : receives
 
     ORDER ||--o{ ORDER_ITEM : contains
+
+    CATEGORY ||--o{ PRODUCT : classifies
 
     PRODUCT ||--o{ ORDER_ITEM : included_in
     PRODUCT ||--o{ INVENTORY_MOVEMENT : registers
@@ -182,17 +201,24 @@ erDiagram
         timestamp updated_at
     }
 
-    PRODUCT {
+    CATEGORY {
         uuid id PK
         string name
-        string category
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PRODUCT {
+        uuid id PK
+        uuid category_id FK
+        string name
         text description
         decimal price
         int stock
         date expiration_date
         timestamp created_at
         timestamp updated_at
-    }
+}
 
     INVENTORY_MOVEMENT {
         uuid id PK
@@ -272,4 +298,18 @@ Las notificaciones permiten centralizar eventos importantes del sistema como:
 * productos vencidos,
 * nuevos pedidos.
 
-Estas son visualizadas desde el centro de notificaciones del administrador.
+Durante el alcance MVP del proyecto, las notificaciones serán generadas únicamente para usuarios con rol administrador, permitiendo centralizar eventos importantes relacionados con inventario, vencimientos y gestión de pedidos.
+
+---
+
+## Reportes
+
+El módulo de reportes no utiliza entidades propias dentro del modelo relacional, ya que su funcionalidad se basa en consultas agregadas y filtradas sobre múltiples entidades del sistema como `Product`, `Order`, `OrderItem` e `InventoryMovement`.
+
+Esta decisión permite evitar redundancia de información y mantener consistencia entre los datos operacionales y los reportes generados dinámicamente.
+
+---
+
+## Consistencia Transaccional
+
+Las operaciones relacionadas con actualización de stock y procesamiento de pedidos deberán ejecutarse de manera transaccional para garantizar la integridad de los datos y evitar inconsistencias como stock negativo o pedidos procesados con inventario insuficiente.

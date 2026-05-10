@@ -6,6 +6,7 @@
 | :------ | :--------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------ |
 | 1.0     | 01/05/2026 | Levantamiento inicial de necesidades de usuarios y definición de historias de usuario.                       | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 | 1.1     | 09/05/2026 | Refinamiento de historias de usuario, criterios de aceptación y reorganización de módulos funcionales.      | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 1.2 | 10/05/2026 | Ajuste de reglas de negocio, refinamiento del flujo de pedidos y alineación de historias de usuario con el modelo de dominio y la arquitectura del sistema. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 
 ---
 
@@ -30,7 +31,7 @@
 | **HU06** | Cliente                 | Explorar el catálogo de productos con nombre, categoría, precio, stock y descripción                 | Encontrar y comparar fácilmente los medicamentos que necesito.                          | Alta      |
 | **HU07** | Administrador           | Crear, editar y eliminar productos del catálogo con todos sus campos                                 | Mantener el catálogo de medicamentos actualizado y disponible para los clientes.        | Alta      |
 | **HU08** | Administrador           | Registrar movimientos de inventario (entradas y salidas) indicando producto, tipo y cantidad         | Llevar un historial preciso del stock disponible.                                       | Alta      |
-| **HU09** | Cliente                 | Agregar productos al carrito e indicar dirección de entrega para registrar un pedido                 | Que la farmacia reciba y procese mi solicitud con la información completa.              | Alta      |
+| **HU09** | Cliente                 | Seleccionar productos del catálogo y confirmar una solicitud de pedido indicando la dirección de entrega                 | Que la farmacia procese mi solicitud con toda la información necesaria.              | Alta      |
 | **HU10** | Cliente                 | Ver el historial de mis pedidos con su fecha, productos, cantidades y estado actual                  | Hacer seguimiento a mis solicitudes en todo momento.                                    | Alta      |
 | **HU11** | Administrador           | Ver todos los pedidos y cambiar su estado siguiendo el flujo definido                                | Gestionar el ciclo completo de despacho y entrega de las solicitudes.                   | Alta      |
 | **HU12** | Administrador           | Ver un listado de productos con fecha de vencimiento dentro de los próximos 30 días                  | Actuar antes de que los productos venzan y generen pérdidas.                            | Alta      |
@@ -282,11 +283,11 @@ Escenario: Visualización del historial de movimientos
 ### HU09 — Registro de pedido
 
 ```gherkin
-Escenario: Agregar producto al carrito
+Escenario: Seleccionar productos para pedido
   Dado que el cliente está autenticado y se encuentra en /catalog
   Cuando selecciona un producto con stock disponible, indica la cantidad deseada
   Y hace clic en "Agregar al carrito"
-  Entonces el sistema agrega el producto al carrito con la cantidad indicada
+  Entonces el sistema agrega el producto al resumen temporal del pedido
   Y actualiza el contador del carrito en la barra de navegación
 
 Escenario: Confirmación exitosa de pedido
@@ -472,3 +473,17 @@ Escenario: Marcar notificación como leída
   Y actualiza el contador del ícono de notificaciones en la barra de navegación
 ```
 
+---
+
+# 📌 Reglas de Negocio
+
+| ID | Regla |
+|----|--------|
+| RN01 | Un pedido no puede retroceder de estado una vez avanzado en el flujo definido. |
+| RN02 | El stock de un producto nunca puede quedar en valores negativos. |
+| RN03 | Los productos con stock igual a 0 no deben mostrarse disponibles en el catálogo del cliente. |
+| RN04 | Solo usuarios con rol administrador pueden gestionar productos, inventario y pedidos. |
+| RN05 | Las contraseñas de usuarios deben almacenarse cifradas. |
+| RN06 | Los productos vencidos no pueden formar parte de nuevos pedidos. |
+| RN07 | El sistema debe registrar trazabilidad de movimientos de inventario. |
+| RN08 | Las notificaciones del MVP serán visibles únicamente para administradores. |
