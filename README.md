@@ -55,7 +55,7 @@ El sistema cuenta con **8 servicios REST** independientes:
 | Base de datos | PostgreSQL |
 | Autenticación | JWT |
 | Contenedores | Docker, Docker Compose |
-| Infraestructura | AWS (ECS Fargate, RDS, S3) |
+| Infraestructura | AWS Lightsail Containers, Amazon RDS PostgreSQL |
 
 ---
 
