@@ -1,0 +1,31 @@
+import { z } from "zod";
+
+/** HU01 - Registro de usuario */
+export const registerSchema = z
+  .object({
+    fullName: z.string().min(2, "El nombre es obligatorio"),
+    email: z.string().email("Correo electrónico no válido"),
+    phone: z
+      .string()
+      .min(7, "Teléfono no válido")
+      .regex(/^[\d\s+()-]+$/, "Solo números y símbolos válidos"),
+    password: z.string().min(8, "La contraseña debe tener mínimo 8 caracteres"),
+    confirmPassword: z.string(),
+    acceptTerms: z.literal(true, {
+      errorMap: () => ({ message: "Debes aceptar los términos y condiciones" }),
+    }),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
+  });
+
+export type RegisterInput = z.infer<typeof registerSchema>;
+
+/** HU02 - Inicio de sesión */
+export const loginSchema = z.object({
+  email: z.string().min(1, "El correo es obligatorio").email("Correo electrónico no válido"),
+  password: z.string().min(1, "La contraseña es obligatoria"),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;

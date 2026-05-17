@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 20 184 166;       /* #14B8A6 */
+    --primary-dark: 15 118 110;  /* #0F766E */
+    --coral: 251 113 133;        /* #FB7185 */
+    --bg: 248 250 252;
+    --text: 15 23 42;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-bg text-text font-sans;
+  }
+
+  /* scrollbar bonita */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #CBD5E1; }
+}
+
+@layer components {
+  /* Sombra suave para cards */
+  .card-elevated {
+    @apply bg-surface border border-border rounded-2xl shadow-sm;
+  }
+
+  /* Focus ring consistente */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-500;
+  }
+}

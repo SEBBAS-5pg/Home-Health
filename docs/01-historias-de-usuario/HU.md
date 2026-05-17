@@ -2,11 +2,26 @@
 
 ## Control de Versiones
 
-| Versión | Fecha      | Descripción                                                                                                  | Responsables                                      |
-| :------ | :--------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------ |
-| 1.0     | 01/05/2026 | Levantamiento inicial de necesidades de usuarios y definición de historias de usuario.                       | Sebastian Puentes, Karina Cantillo, Danay Pereira |
-| 1.1     | 09/05/2026 | Refinamiento de historias de usuario, criterios de aceptación y reorganización de módulos funcionales.      | Sebastian Puentes, Karina Cantillo, Danay Pereira |
-| 1.2 | 10/05/2026 | Ajuste de reglas de negocio, refinamiento del flujo de pedidos y alineación de historias de usuario con el modelo de dominio y la arquitectura del sistema. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| Versión | Fecha      | Descripción                                                                                                                                     | Responsables                                      |
+| :------ | :--------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------ |
+| 1.0     | 01/05/2026 | Levantamiento inicial de necesidades de usuarios y definición de historias de usuario.                                                          | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 1.1     | 09/05/2026 | Refinamiento de historias de usuario, criterios de aceptación y reorganización de módulos funcionales.                                          | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 1.2     | 10/05/2026 | Ajuste de reglas de negocio, refinamiento del flujo de pedidos y alineación de historias de usuario con el modelo de dominio y la arquitectura. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 2.0     | 12/05/2026 | Adición de HU15-HU18 (admin edita perfil, cancelar pedido, recuperación contraseña, exportar reportes) y HU19-HU22 técnicas/spike. Story points en escala Fibonacci, asignación a sprint y matriz de trazabilidad HU↔Módulo↔Endpoint↔MER. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+
+---
+
+## Marco Conceptual
+
+Las Historias de Usuario siguen el formato propuesto por **Mike Cohn (2004)** en *User Stories Applied*: *"Como [rol], quiero [objetivo] para [beneficio]"*. Los criterios de aceptación se redactan en **Gherkin** (Dado/Cuando/Entonces) siguiendo la práctica de **Behaviour-Driven Development** introducida por **Dan North (2006)**.
+
+Cada HU incluye:
+
+- **ID y rol responsable**.
+- **Story points** estimados en escala **Fibonacci modificada** (1, 2, 3, 5, 8, 13) según Cohn (2005), *Agile Estimating and Planning*.
+- **Sprint asignado** según el plan de releases del Story Map.
+- **Categoría MoSCoW** y **prioridad operacional**.
+- **Trazabilidad** al módulo de software, al endpoint REST y a la(s) entidad(es) del MER.
 
 ---
 
@@ -21,22 +36,41 @@
 
 ## 2. Tabla de Historias de Usuario
 
-| ID       | Como (rol)              | Quiero (objetivo)                                                                                    | Para (beneficio)                                                                        | Prioridad |
-| :------- | :---------------------- | :--------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------- | :-------- |
-| **HU01** | Cliente                 | Registrarme con nombre, correo, teléfono y contraseña                                                | Tener una cuenta y poder realizar solicitudes de pedidos en la plataforma.              | Alta      |
-| **HU02** | Cliente / Administrador | Iniciar sesión con correo y contraseña                                                               | Acceder a las funcionalidades y vistas correspondientes según mi rol.                   | Alta      |
-| **HU03** | Cliente / Administrador | Cerrar sesión desde cualquier vista de la plataforma                                                 | Proteger mi cuenta al terminar de usar el sistema.                                      | Alta      |
-| **HU04** | Cliente                 | Ver y editar mis datos de perfil (nombre y teléfono)                                                 | Mantener mi información de contacto actualizada.                                        | Media     |
-| **HU05** | Administrador           | Ver el listado completo de usuarios registrados con su nombre, correo, teléfono y rol                | Tener control y visibilidad sobre quién accede a la plataforma.                         | Media     |
-| **HU06** | Cliente                 | Explorar el catálogo de productos con nombre, categoría, precio, stock y descripción                 | Encontrar y comparar fácilmente los medicamentos que necesito.                          | Alta      |
-| **HU07** | Administrador           | Crear, editar y eliminar productos del catálogo con todos sus campos                                 | Mantener el catálogo de medicamentos actualizado y disponible para los clientes.        | Alta      |
-| **HU08** | Administrador           | Registrar movimientos de inventario (entradas y salidas) indicando producto, tipo y cantidad         | Llevar un historial preciso del stock disponible.                                       | Alta      |
-| **HU09** | Cliente                 | Seleccionar productos del catálogo y confirmar una solicitud de pedido indicando la dirección de entrega                 | Que la farmacia procese mi solicitud con toda la información necesaria.              | Alta      |
-| **HU10** | Cliente                 | Ver el historial de mis pedidos con su fecha, productos, cantidades y estado actual                  | Hacer seguimiento a mis solicitudes en todo momento.                                    | Alta      |
-| **HU11** | Administrador           | Ver todos los pedidos y cambiar su estado siguiendo el flujo definido                                | Gestionar el ciclo completo de despacho y entrega de las solicitudes.                   | Alta      |
-| **HU12** | Administrador           | Ver un listado de productos con fecha de vencimiento dentro de los próximos 30 días                  | Actuar antes de que los productos venzan y generen pérdidas.                            | Alta      |
-| **HU13** | Administrador           | Generar y exportar reportes de inventario y pedidos filtrando por fecha                              | Contar con información consolidada para la toma de decisiones.                          | Media     |
-| **HU14** | Administrador           | Recibir y visualizar notificaciones dentro de la plataforma sobre stock bajo, productos vencidos y nuevos pedidos            | Estar informado sobre eventos importantes del sistema desde un único lugar sin tener que revisar cada módulo manualmente.      | Alta     |
+### 2.1 Historias funcionales (HU01–HU18)
+
+| ID       | Como (rol)              | Quiero (objetivo)                                                                                              | Para (beneficio)                                                                  | SP | Sprint | MoSCoW    | Prioridad |
+| :------- | :---------------------- | :------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------- | :-: | :----: | :-------- | :-------- |
+| **HU01** | Cliente                 | Registrarme con nombre, correo, teléfono y contraseña                                                          | Tener una cuenta y realizar pedidos.                                              | 5  | 1      | Must      | Alta      |
+| **HU02** | Cliente / Admin         | Iniciar sesión con correo y contraseña                                                                          | Acceder al rol correspondiente.                                                   | 5  | 1      | Must      | Alta      |
+| **HU03** | Cliente / Admin         | Cerrar sesión desde cualquier vista                                                                            | Proteger mi cuenta al terminar.                                                   | 2  | 2      | Should    | Alta      |
+| **HU04** | Cliente                 | Ver y editar mis datos de perfil (nombre y teléfono)                                                           | Mantener mis datos al día.                                                        | 3  | 2      | Could     | Media     |
+| **HU05** | Administrador           | Listar usuarios registrados con filtros por rol                                                                | Control y visibilidad.                                                            | 3  | 2      | Could     | Media     |
+| **HU06** | Cliente                 | Explorar el catálogo de productos                                                                              | Encontrar y comparar medicamentos.                                                | 3  | 1      | Must      | Alta      |
+| **HU07** | Administrador           | Crear, editar y eliminar productos del catálogo                                                                | Mantener catálogo actualizado.                                                    | 5  | 1      | Must      | Alta      |
+| **HU08** | Administrador           | Registrar movimientos de inventario (entradas y salidas)                                                       | Historial preciso del stock.                                                      | 5  | 2      | Should    | Alta      |
+| **HU09** | Cliente                 | Confirmar pedido seleccionando productos y dirección de entrega                                                 | Que la farmacia procese mi solicitud.                                             | 8  | 1      | Must      | Alta      |
+| **HU10** | Cliente                 | Ver historial de mis pedidos con estado actual                                                                 | Hacer seguimiento.                                                                | 3  | 1      | Must      | Alta      |
+| **HU11** | Administrador           | Gestionar todos los pedidos y cambiar su estado                                                                 | Operar el ciclo de despacho.                                                      | 8  | 1      | Must      | Alta      |
+| **HU12** | Administrador           | Ver productos con vencimiento ≤30 días                                                                          | Actuar antes de pérdidas.                                                         | 5  | 2      | Should    | Alta      |
+| **HU13** | Administrador           | Generar reportes de inventario y pedidos por periodo                                                            | Información consolidada para decisiones.                                          | 5  | 3      | Could     | Media     |
+| **HU14** | Administrador           | Recibir notificaciones sobre stock bajo, vencimientos y nuevos pedidos                                          | Estar informado sin revisar cada módulo.                                          | 5  | 2      | Should    | Alta      |
+| **HU15** | Administrador           | Editar el perfil de cualquier usuario (nombre, teléfono, rol, estado activo/inactivo)                          | Soporte y corrección de datos por el área administrativa.                         | 3  | 3      | Could     | Media     |
+| **HU16** | Cliente                 | Cancelar un pedido propio en estado "Pendiente"                                                                 | Reducir fricción y carga al admin cuando me arrepiento del pedido.                | 3  | 2      | Should    | Media     |
+| **HU17** | Cliente                 | Recuperar mi contraseña mediante enlace temporal por correo                                                     | Recuperar acceso sin depender del admin.                                          | 5  | 3      | Could     | Media     |
+| **HU18** | Administrador           | Exportar reportes en formato PDF, Excel (.xlsx) y CSV                                                           | Integrar reportes con flujos contables externos.                                  | 5  | 3      | Could     | Media     |
+
+### 2.2 Historias técnicas y spikes (HU19–HU22)
+
+Las **HU técnicas** y **spikes** son aquellas que no aportan valor directo al usuario final pero son necesarias para reducir incertidumbre técnica o construir habilitadores arquitectónicos (Cohn, 2009).
+
+| ID       | Tipo   | Como (rol)        | Quiero (objetivo)                                                                                          | Para (beneficio)                                                       | SP | Sprint | Prioridad |
+| :------- | :----- | :---------------- | :--------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- | :-: | :----: | :-------- |
+| **HU19** | Spike  | Equipo dev        | Investigar e implementar prueba de concepto de autenticación JWT con NestJS Guards y refresh tokens        | Reducir incertidumbre técnica antes del Sprint 1.                      | 3  | 0      | Alta      |
+| **HU20** | Spike  | Equipo dev        | Investigar upload de imágenes de productos vía presigned URLs de S3                                        | Validar costo y latencia antes de exponerlo al usuario.                | 3  | 0      | Media     |
+| **HU21** | Técnica| Equipo dev        | Configurar pipeline CI/CD en GitHub Actions con lint + tests + build + push a Lightsail Container Registry | Habilitar despliegues automatizados desde el primer commit.            | 2  | 0      | Alta      |
+| **HU22** | Técnica| Equipo dev        | Implementar logging estructurado con Pino y health checks (`/health`, `/health/ready`)                     | Tener observabilidad mínima antes de la sustentación AWS.              | 3  | 3      | Media     |
+
+**Total story points del proyecto**: **92 SP** distribuidos en Sprint 0 (8 SP) + Sprint 1 (37 SP) + Sprint 2 (26 SP) + Sprint 3 (21 SP).
 
 ---
 
@@ -475,15 +509,182 @@ Escenario: Marcar notificación como leída
 
 ---
 
+### HU15 — Edición de perfil de cualquier usuario (Admin)
+
+```gherkin
+Escenario: Edición exitosa del perfil de un usuario
+  Dado que el administrador está autenticado y en /admin/users
+  Cuando selecciona un usuario y hace clic en "Editar"
+  Y modifica nombre, teléfono o rol del usuario
+  Y hace clic en "Guardar cambios"
+  Entonces el sistema actualiza los datos en la base de datos
+  Y registra un AuditLog con before_data y after_data
+  Y muestra el mensaje "Usuario actualizado correctamente"
+
+Escenario: Cambio de estado a inactivo
+  Dado que el administrador está editando un usuario
+  Cuando cambia el estado de "Activo" a "Inactivo"
+  Y confirma
+  Entonces el sistema marca al usuario como inactivo
+  Y el usuario inactivo ya no puede iniciar sesión
+  Y se muestra el mensaje "Usuario desactivado"
+
+Escenario: Restricción de cambio de rol del propio admin
+  Dado que el administrador edita su propio perfil
+  Cuando intenta cambiar su rol de "Administrador" a "Cliente"
+  Entonces el sistema muestra el mensaje "No puedes cambiar tu propio rol"
+  Y mantiene el rol original
+```
+
+---
+
+### HU16 — Cancelación de pedido por el cliente
+
+```gherkin
+Escenario: Cancelación exitosa de un pedido pendiente
+  Dado que el cliente está en /my-orders
+  Y un pedido propio tiene estado "Pendiente"
+  Cuando hace clic en "Cancelar pedido"
+  Y confirma en el diálogo "¿Estás seguro de cancelar este pedido?"
+  Entonces el sistema cambia el estado a "Cancelado"
+  Y registra fecha y hora de la cancelación
+  Y genera notificación para el administrador
+  Y muestra el mensaje "Pedido cancelado correctamente"
+
+Escenario: Intento de cancelar un pedido no cancelable
+  Dado que un pedido tiene estado "En preparación", "En camino" o "Entregado"
+  Cuando el cliente intenta cancelarlo
+  Entonces el botón "Cancelar pedido" aparece deshabilitado
+  Y al pasar el cursor se muestra el tooltip "Solo se pueden cancelar pedidos pendientes"
+
+Escenario: Cliente intenta cancelar pedido ajeno
+  Dado que un cliente intenta cancelar un pedido que no le pertenece (por manipulación de URL)
+  Entonces el sistema retorna error HTTP 403
+  Y registra el intento en AuditLog
+```
+
+---
+
+### HU17 — Recuperación de contraseña
+
+```gherkin
+Escenario: Solicitud de recuperación con correo válido
+  Dado que el usuario está en /forgot-password
+  Cuando ingresa un correo electrónico registrado en el sistema
+  Y hace clic en "Enviar enlace"
+  Entonces el sistema genera un token de recuperación único con vigencia de 30 minutos
+  Y envía un correo mediante Amazon SES con el enlace https://home-health.app/reset-password?token=...
+  Y muestra el mensaje "Si el correo está registrado, recibirás un enlace en pocos minutos"
+
+Escenario: Solicitud con correo no registrado
+  Dado que el usuario ingresa un correo no registrado
+  Entonces el sistema NO envía ningún correo
+  Y muestra el mismo mensaje genérico para no revelar qué correos existen
+  Y no informa al usuario que el correo no existe
+
+Escenario: Restablecimiento exitoso con token válido
+  Dado que el usuario accede a /reset-password?token=... desde el correo
+  Y el token es válido y no ha expirado
+  Cuando ingresa nueva contraseña y confirmación
+  Y hace clic en "Restablecer contraseña"
+  Entonces el sistema actualiza la contraseña (hasheada con bcrypt)
+  Y invalida el token
+  Y redirige a /login con el mensaje "Contraseña actualizada"
+
+Escenario: Token expirado o usado
+  Dado que el usuario accede con un token expirado o ya consumido
+  Entonces el sistema muestra el mensaje "Este enlace ha expirado o ya fue usado"
+  Y ofrece el botón "Solicitar nuevo enlace"
+```
+
+---
+
+### HU18 — Exportación de reportes en múltiples formatos
+
+```gherkin
+Escenario: Exportar reporte en PDF
+  Dado que el administrador tiene un reporte generado en /admin/reports
+  Cuando hace clic en "Exportar PDF"
+  Entonces el sistema genera un archivo PDF con el contenido completo del reporte
+  Y descarga el archivo con nombre "{tipo}_{YYYYMMDD}.pdf"
+  Y el PDF incluye encabezado con logo, fecha de generación y firma del admin
+
+Escenario: Exportar reporte en Excel (.xlsx)
+  Dado que el administrador tiene un reporte generado
+  Cuando hace clic en "Exportar Excel"
+  Entonces el sistema genera un archivo .xlsx con hoja de cálculo formateada
+  Y los números numéricos quedan como `number`, las fechas como `date`, los precios con formato moneda COP
+  Y descarga el archivo con nombre "{tipo}_{YYYYMMDD}.xlsx"
+
+Escenario: Exportar reporte en CSV
+  Dado que el administrador tiene un reporte generado
+  Cuando hace clic en "Exportar CSV"
+  Entonces el sistema genera un archivo CSV con separador coma y encoding UTF-8 BOM
+  Y descarga el archivo con nombre "{tipo}_{YYYYMMDD}.csv"
+  Y el archivo es legible directamente desde Excel y Google Sheets
+
+Escenario: Reporte vacío
+  Dado que el filtro de un reporte no devuelve filas
+  Cuando el admin intenta exportar
+  Entonces el sistema muestra el mensaje "El reporte no contiene datos para exportar"
+  Y no genera archivo
+```
+
+---
+
+# 📊 Matriz de Trazabilidad HU ↔ Módulo ↔ Endpoint ↔ MER
+
+Esta matriz garantiza la **trazabilidad bidireccional** entre las Historias de Usuario, los módulos de software, los endpoints REST del backend y las entidades del Modelo Entidad-Relación. Es indispensable para evaluación, auditoría y mantenimiento futuro del sistema.
+
+| HU       | Módulo          | Endpoints REST involucrados                                  | Entidades MER afectadas                  | Reglas de Negocio |
+| :------- | :-------------- | :----------------------------------------------------------- | :--------------------------------------- | :---------------- |
+| **HU01** | Auth            | `POST /auth/register`                                        | `User`, `AuditLog`                       | RN05              |
+| **HU02** | Auth            | `POST /auth/login`                                           | `User`, `AuditLog`                       | RN05              |
+| **HU03** | Auth            | `POST /auth/logout`                                          | `AuditLog`                               | —                 |
+| **HU04** | Users           | `GET /users/me`, `PATCH /users/me`                           | `User`, `AuditLog`                       | —                 |
+| **HU05** | Users           | `GET /users`, `GET /users?role=...`                          | `User`                                   | RN04              |
+| **HU06** | Products        | `GET /products`, `GET /products/:id`                         | `Product`, `Category`                    | RN03              |
+| **HU07** | Products        | `POST /products`, `PATCH /products/:id`, `DELETE /products/:id` | `Product`, `Category`, `AuditLog`     | RN04              |
+| **HU08** | Inventory       | `POST /inventory/movements`, `GET /inventory/movements`      | `InventoryMovement`, `Product`, `AuditLog` | RN02, RN07     |
+| **HU09** | Orders          | `POST /orders`                                               | `Order`, `OrderItem`, `Product`, `AuditLog`, `Notification` | RN02, RN03, RN06 |
+| **HU10** | Orders          | `GET /orders/me`, `GET /orders/me/:id`                       | `Order`, `OrderItem`                     | —                 |
+| **HU11** | Orders          | `GET /orders`, `PATCH /orders/:id/status`                    | `Order`, `OrderStatusHistory`, `Product`, `InventoryMovement`, `AuditLog`, `Notification` | RN01, RN02, RN04 |
+| **HU12** | Expirations     | `GET /products/expiring`, `GET /products/expired`            | `Product`                                | RN06              |
+| **HU13** | Reports         | `GET /reports/inventory`, `GET /reports/sales`               | `Product`, `Order`, `OrderItem`, `InventoryMovement` | RN04 |
+| **HU14** | Notifications   | `GET /notifications`, `PATCH /notifications/:id/read`        | `Notification`, `User`                   | RN04, RN08        |
+| **HU15** | Users           | `PATCH /users/:id`                                           | `User`, `AuditLog`                       | RN04              |
+| **HU16** | Orders          | `PATCH /orders/:id/cancel`                                   | `Order`, `OrderStatusHistory`, `AuditLog`, `Notification` | RN01, RN04 |
+| **HU17** | Auth            | `POST /auth/forgot-password`, `POST /auth/reset-password`    | `User`, `PasswordResetToken`, `AuditLog` | RN05              |
+| **HU18** | Reports         | `GET /reports/:type/export?format=pdf|xlsx|csv`              | `Product`, `Order`, `OrderItem`          | RN04              |
+| **HU19** | Spike Auth      | (spike — no produce endpoints permanentes)                   | —                                        | —                 |
+| **HU20** | Spike S3        | `POST /products/:id/image` (presigned)                       | `Product`                                | —                 |
+| **HU21** | Técnica CI/CD   | (configuración de pipeline)                                  | —                                        | —                 |
+| **HU22** | Técnica Obs.    | `GET /health`, `GET /health/ready`                           | —                                        | —                 |
+
+---
+
 # 📌 Reglas de Negocio
 
-| ID | Regla |
-|----|--------|
-| RN01 | Un pedido no puede retroceder de estado una vez avanzado en el flujo definido. |
-| RN02 | El stock de un producto nunca puede quedar en valores negativos. |
-| RN03 | Los productos con stock igual a 0 no deben mostrarse disponibles en el catálogo del cliente. |
-| RN04 | Solo usuarios con rol administrador pueden gestionar productos, inventario y pedidos. |
-| RN05 | Las contraseñas de usuarios deben almacenarse cifradas. |
-| RN06 | Los productos vencidos no pueden formar parte de nuevos pedidos. |
-| RN07 | El sistema debe registrar trazabilidad de movimientos de inventario. |
-| RN08 | Las notificaciones del MVP serán visibles únicamente para administradores. |
+| ID    | Regla                                                                                                          |
+| :---- | :------------------------------------------------------------------------------------------------------------- |
+| RN01  | Un pedido no puede retroceder de estado una vez avanzado en el flujo definido.                                 |
+| RN02  | El stock de un producto nunca puede quedar en valores negativos (validado por constraint CHECK y transacción). |
+| RN03  | Los productos con stock igual a 0 no deben mostrarse disponibles en el catálogo del cliente.                   |
+| RN04  | Solo usuarios con rol administrador pueden gestionar productos, inventario y pedidos.                          |
+| RN05  | Las contraseñas de usuarios deben almacenarse cifradas con bcrypt (cost factor ≥ 12).                          |
+| RN06  | Los productos vencidos no pueden formar parte de nuevos pedidos.                                               |
+| RN07  | El sistema debe registrar trazabilidad completa de movimientos de inventario en `InventoryMovement` y `AuditLog`. |
+| RN08  | Las notificaciones del MVP serán visibles únicamente para administradores.                                     |
+| RN09  | Toda acción crítica (CRUD de Product, cambio de estado de Order, edición de User, ajuste de stock, login admin) debe quedar registrada en `AuditLog`. |
+| RN10  | El cliente solo puede cancelar pedidos cuyo estado sea "Pendiente" y cuyo `customer_id` coincida con su `user_id`. |
+| RN11  | Los tokens de recuperación de contraseña tienen vigencia máxima de 30 minutos y son de un solo uso.            |
+
+---
+
+## Referencias
+
+- **Cohn, M.** (2004). *User Stories Applied: For Agile Software Development*. Addison-Wesley.
+- **Cohn, M.** (2005). *Agile Estimating and Planning*. Prentice Hall.
+- **Cohn, M.** (2009). *Succeeding with Agile: Software Development Using Scrum*. Addison-Wesley.
+- **North, D.** (2006). *Introducing BDD*. Better Software Magazine.
+- **Patton, J.** (2014). *User Story Mapping: Discover the Whole Story, Build the Right Product*. O'Reilly Media.

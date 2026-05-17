@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home-Health · Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#14B8A6;
+    --primary-dark:#0F766E;
+    --primary-light:#CCFBF1;
+    --primary-50:#F0FDFA;
+    --coral:#FB7185;
+    --coral-light:#FECDD3;
+    --coral-50:#FFF1F2;
+    --bg:#F8FAFC;
+    --surface:#FFFFFF;
+    --text:#0F172A;
+    --text-muted:#64748B;
+    --text-soft:#94A3B8;
+    --border:#E2E8F0;
+    --border-light:#F1F5F9;
+    --success:#10B981;
+    --warning:#F59E0B;
+    --danger:#EF4444;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+    --shadow:0 4px 12px rgba(15,23,42,.06);
+    --shadow-lg:0 10px 30px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#EEF2F6;
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ==== Top nav of mockup tool ==== */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:#0F172A;color:#fff;
+    padding:14px 24px;display:flex;align-items:center;gap:20px;
+    box-shadow:0 2px 12px rgba(0,0,0,.15);
+  }
+  .topbar .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px}
+  .topbar .brand-logo{width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--coral));border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:800}
+  .topbar .meta{color:#94A3B8;font-size:12px;margin-left:auto}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;padding:14px 24px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:56px;z-index:49}
+  .tab{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;border:1px solid transparent;transition:all .15s}
+  .tab:hover{background:var(--bg);color:var(--text)}
+  .tab.active{background:var(--primary-50);color:var(--primary-dark);border-color:var(--primary-light);font-weight:600}
+  .tab .role{font-size:10px;text-transform:uppercase;letter-spacing:.5px;opacity:.6;margin-right:6px}
+  /* ==== Browser frame ==== */
+  .stage{padding:32px;display:flex;justify-content:center}
+  .frame{
+    width:100%;max-width:1280px;
+    background:var(--surface);
+    border-radius:14px;overflow:hidden;
+    box-shadow:var(--shadow-lg);
+    border:1px solid var(--border);
+  }
+  .frame-bar{
+    background:#F1F5F9;padding:10px 14px;
+    display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid var(--border);
+  }
+  .dots{display:flex;gap:6px}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .dot.r{background:#FB7185}.dot.y{background:#FBBF24}.dot.g{background:#34D399}
+  .url{
+    flex:1;background:#fff;border:1px solid var(--border);
+    border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text-muted);
+    font-family:ui-monospace,monospace;
+  }
+  .url .path{color:var(--text)}
+  .screen{display:none;min-height:720px}
+  .screen.active{display:block}
+
+  /* ==== Components ==== */
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 18px;border-radius:8px;font-weight:600;font-size:14px;
+    cursor:pointer;border:1px solid transparent;transition:all .15s;
+  }
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:var(--primary-dark)}
+  .btn-secondary{background:#fff;color:var(--text);border-color:var(--border)}
+  .btn-secondary:hover{background:var(--bg)}
+  .btn-coral{background:var(--coral);color:#fff}
+  .btn-danger{background:#fff;color:var(--danger);border-color:var(--coral-light)}
+  .btn-ghost{background:transparent;color:var(--text-muted)}
+  .btn-sm{padding:6px 12px;font-size:13px}
+  .input,.select{
+    width:100%;padding:11px 14px;border-radius:8px;border:1px solid var(--border);
+    font-size:14px;background:#fff;font-family:inherit;color:var(--text);
+  }
+  .input:focus,.select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+  .label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text)}
+  .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.2px}
+  .badge-primary{background:var(--primary-light);color:var(--primary-dark)}
+  .badge-coral{background:var(--coral-light);color:#9F1239}
+  .badge-warning{background:#FEF3C7;color:#92400E}
+  .badge-success{background:#D1FAE5;color:#065F46}
+  .badge-danger{background:#FEE2E2;color:#991B1B}
+  .badge-muted{background:#E2E8F0;color:#475569}
+
+  /* ==== App shell (sidebar + content) ==== */
+  .app{display:flex;min-height:720px;background:var(--bg)}
+  .sidebar{width:240px;background:#fff;border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+  .sb-brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px;border-bottom:1px solid var(--border-light);margin-bottom:14px}
+  .sb-brand-logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--coral));display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px}
+  .sb-brand-name{font-weight:700;font-size:15px}
+  .sb-brand-name span{display:block;font-size:11px;font-weight:500;color:var(--text-soft)}
+  .sb-section{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-soft);font-weight:600;padding:14px 10px 6px}
+  .sb-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:var(--text-muted);font-weight:500;cursor:pointer}
+  .sb-link:hover{background:var(--bg);color:var(--text)}
+  .sb-link.active{background:var(--primary-50);color:var(--primary-dark);font-weight:600}
+  .sb-link .ic{width:18px;height:18px;display:grid;place-items:center;font-size:14px}
+  .sb-foot{margin-top:auto;padding:10px;border-top:1px solid var(--border-light);display:flex;align-items:center;gap:10px}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--coral-light);display:grid;place-items:center;color:#9F1239;font-weight:700;font-size:13px}
+  .avatar.tq{background:var(--primary-light);color:var(--primary-dark)}
+  .sb-foot-info{font-size:12px;line-height:1.3;flex:1}
+  .sb-foot-info b{font-weight:600;color:var(--text)}
+  .sb-foot-info span{color:var(--text-soft)}
+  .content{flex:1;padding:28px 32px;overflow:auto}
+  .topnav{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+  .topnav h1{font-size:22px;font-weight:700}
+  .topnav .sub{color:var(--text-muted);font-size:14px}
+  .topnav .right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:#fff;display:grid;place-items:center;cursor:pointer;color:var(--text-muted);position:relative}
+  .icon-btn .dot-noti{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--coral);border:2px solid #fff}
+
+  /* ==== Auth screens ==== */
+  .auth{display:grid;grid-template-columns:1fr 1fr;min-height:720px}
+  .auth-left{background:linear-gradient(135deg,var(--primary) 0%,#0891B2 100%);color:#fff;padding:60px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+  .auth-left::before{content:"";position:absolute;width:380px;height:380px;background:rgba(255,255,255,.08);border-radius:50%;bottom:-160px;right:-160px}
+  .auth-left::after{content:"";position:absolute;width:200px;height:200px;background:var(--coral);opacity:.25;border-radius:50%;top:80px;right:60px}
+  .auth-logo{display:flex;align-items:center;gap:12px;font-weight:700;font-size:18px;z-index:1}
+  .auth-logo-mark{width:42px;height:42px;border-radius:12px;background:#fff;color:var(--primary-dark);display:grid;place-items:center;font-weight:800;font-size:18px}
+  .auth-headline{position:relative;z-index:1}
+  .auth-headline h2{font-size:34px;font-weight:800;line-height:1.15;margin-bottom:14px}
+  .auth-headline p{font-size:15px;opacity:.9;line-height:1.55;max-width:380px}
+  .auth-features{display:flex;flex-direction:column;gap:12px;z-index:1;position:relative}
+  .auth-feat{display:flex;align-items:center;gap:10px;font-size:13px;opacity:.95}
+  .auth-feat .check{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:12px}
+  .auth-right{padding:60px;display:flex;flex-direction:column;justify-content:center;max-width:520px;margin:0 auto;width:100%}
+  .auth-right h3{font-size:26px;font-weight:700;margin-bottom:6px}
+  .auth-right .sub{color:var(--text-muted);margin-bottom:28px;font-size:14px}
+  .form-group{margin-bottom:16px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .auth-foot{margin-top:18px;text-align:center;font-size:13px;color:var(--text-muted)}
+  .auth-foot a{color:var(--primary-dark);font-weight:600;text-decoration:none}
+
+  /* ==== Catalog ==== */
+  .filters-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+  .search{position:relative;flex:1;min-width:240px}
+  .search input{width:100%;padding:10px 14px 10px 38px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:14px;font-family:inherit}
+  .search::before{content:"🔍";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.55}
+  .chip{padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--border);font-size:13px;color:var(--text-muted);cursor:pointer;font-weight:500}
+  .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .grid-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .product{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .2s;display:flex;flex-direction:column}
+  .product:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+  .product .img{height:120px;background:linear-gradient(135deg,var(--primary-50),var(--coral-50));display:grid;place-items:center;font-size:38px}
+  .product .body{padding:14px;display:flex;flex-direction:column;flex:1;gap:6px}
+  .product .cat{font-size:11px;color:var(--primary-dark);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .product .name{font-weight:600;font-size:14px;line-height:1.3}
+  .product .desc{font-size:12px;color:var(--text-muted);line-height:1.4;flex:1}
+  .product .price-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .product .price{font-size:16px;font-weight:700;color:var(--text)}
+  .product .stock{font-size:11px;color:var(--text-soft)}
+  .product .add{margin-top:10px;padding:8px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit}
+  .product .add.disabled{background:#E2E8F0;color:var(--text-soft);cursor:not-allowed}
+
+  /* ==== Cards / panels ==== */
+  .panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:var(--shadow-sm)}
+  .panel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .panel-h h3{font-size:16px;font-weight:700}
+  .panel-h .sub{font-size:13px;color:var(--text-muted)}
+
+  /* ==== Stats ==== */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .stat{background:#fff;border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .stat .label{font-size:12px;color:var(--text-muted);font-weight:500;margin-bottom:6px}
+  .stat .val{font-size:26px;font-weight:800;color:var(--text)}
+  .stat .delta{font-size:12px;color:var(--success);font-weight:600;margin-top:4px}
+  .stat .delta.down{color:var(--coral)}
+  .stat .icn{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:10px;background:var(--primary-50);color:var(--primary-dark);display:grid;place-items:center;font-size:18px}
+  .stat.coral .icn{background:var(--coral-50);color:#BE123C}
+  .stat.warn .icn{background:#FEF3C7;color:#92400E}
+  .stat.success .icn{background:#D1FAE5;color:#065F46}
+
+  /* ==== Tables ==== */
+  .table-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:600;text-align:left;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--border)}
+  td{padding:14px 16px;font-size:13px;border-bottom:1px solid var(--border-light);color:var(--text)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:#FAFCFD}
+  .row-actions{display:flex;gap:8px}
+  .row-actions button{background:transparent;border:none;cursor:pointer;color:var(--text-muted);padding:4px 8px;border-radius:6px;font-size:12px;font-family:inherit}
+  .row-actions button:hover{background:var(--bg);color:var(--text)}
+  .row-actions .danger:hover{color:var(--danger);background:var(--coral-50)}
+
+  /* ==== Cart ==== */
+  .cart-layout{display:grid;grid-template-columns:1fr 380px;gap:20px}
+  .cart-item{display:flex;gap:14px;padding:14px;border:1px solid var(--border);border-radius:12px;background:#fff;align-items:center;margin-bottom:10px}
+  .cart-item .img{width:60px;height:60px;border-radius:10px;background:linear-gradient(135deg,var(--primary-50),var(--coral-50));display:grid;place-items:center;font-size:24px;flex-shrink:0}
+  .cart-item .info{flex:1}
+  .cart-item .info .n{font-weight:600;font-size:14px;margin-bottom:2px}
+  .cart-item .info .c{font-size:12px;color:var(--text-muted)}
+  .qty{display:flex;align-items:center;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .qty button{width:30px;height:30px;background:#fff;border:none;cursor:pointer;font-weight:600;color:var(--text-muted);font-size:14px}
+  .qty button:hover{background:var(--bg)}
+  .qty span{padding:0 12px;font-weight:600;font-size:13px}
+  .summary-row{display:flex;justify-content:space-between;padding:8px 0;font-size:14px;color:var(--text-muted)}
+  .summary-row.tot{padding-top:14px;margin-top:6px;border-top:1px solid var(--border);color:var(--text);font-weight:700;font-size:17px}
+
+  /* ==== Orders ==== */
+  .order-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:12px}
+  .order-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+  .order-id{font-size:12px;color:var(--text-muted);font-family:ui-monospace,monospace}
+  .order-num{font-weight:700;font-size:15px}
+  .order-products{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .order-prod{font-size:12px;background:var(--bg);padding:4px 10px;border-radius:999px;color:var(--text-muted)}
+  .order-foot{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--text-muted);padding-top:12px;border-top:1px solid var(--border-light)}
+
+  /* ==== Inventory page ==== */
+  .inv-layout{display:grid;grid-template-columns:380px 1fr;gap:20px}
+  .alert-box{padding:12px 14px;border-radius:10px;background:var(--coral-50);border:1px solid var(--coral-light);color:#9F1239;font-size:13px;display:flex;gap:10px;align-items:center;margin-bottom:14px}
+  .alert-box.warn{background:#FEF3C7;border-color:#FDE68A;color:#92400E}
+
+  /* ==== Charts (SVG decorative) ==== */
+  .chart-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px}
+  .chart-bar{display:flex;align-items:flex-end;gap:14px;height:160px;padding:10px 0;margin-top:14px}
+  .chart-bar .bar{flex:1;background:linear-gradient(180deg,var(--primary),var(--primary-dark));border-radius:8px 8px 0 0;position:relative;min-height:8px;transition:all .2s}
+  .chart-bar .bar.coral{background:linear-gradient(180deg,var(--coral),#E11D48)}
+  .chart-bar .bar span{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:11px;color:var(--text-muted);font-weight:500}
+
+  /* ==== Helpers ==== */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .flex-row{display:flex;gap:12px;align-items:center}
+  .stack{display:flex;flex-direction:column;gap:14px}
+  .mt-4{margin-top:16px}.mb-4{margin-bottom:16px}.mt-2{margin-top:8px}
+  .text-muted{color:var(--text-muted)}
+  .info-banner{background:var(--primary-50);border-left:3px solid var(--primary);padding:12px 16px;border-radius:8px;font-size:13px;color:var(--primary-dark);margin-bottom:14px}
+  .info-banner.coral{background:var(--coral-50);border-color:var(--coral);color:#9F1239}
+
+  /* Notifications */
+  .noti{display:flex;gap:12px;padding:14px;border-bottom:1px solid var(--border-light);align-items:flex-start}
+  .noti.unread{background:var(--primary-50)}
+  .noti .ico{width:36px;height:36px;border-radius:10px;background:var(--coral-50);color:#BE123C;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+  .noti.warn .ico{background:#FEF3C7;color:#92400E}
+  .noti.ok .ico{background:var(--primary-light);color:var(--primary-dark)}
+  .noti .body{flex:1}
+  .noti .body .t{font-weight:600;font-size:13px;margin-bottom:2px}
+  .noti .body .d{font-size:12px;color:var(--text-muted)}
+  .noti .time{font-size:11px;color:var(--text-soft);white-space:nowrap}
+
+  /* Detail / dialog */
+  .detail{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px}
+  .timeline{position:relative;padding-left:24px;margin-top:14px}
+  .timeline::before{content:"";position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border)}
+  .tl-item{position:relative;padding-bottom:14px}
+  .tl-item::before{content:"";position:absolute;left:-21px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--primary);border:3px solid #fff;box-shadow:0 0 0 1px var(--border)}
+  .tl-item.done::before{background:var(--success)}
+  .tl-item.cur::before{background:var(--coral)}
+  .tl-item .t{font-weight:600;font-size:13px}
+  .tl-item .d{font-size:12px;color:var(--text-muted)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><div class="brand-logo">+H</div> Home-Health · Mockup interactivo</div>
+  <div class="meta">v1.0 · Diseñado para Figma · Paleta turquesa + coral</div>
+</div>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-tgt="login"><span class="role">Auth</span>Login</div>
+  <div class="tab" data-tgt="register"><span class="role">Auth</span>Registro</div>
+  <div class="tab" data-tgt="catalog"><span class="role">Cliente</span>Catálogo</div>
+  <div class="tab" data-tgt="cart"><span class="role">Cliente</span>Carrito / Pedido</div>
+  <div class="tab" data-tgt="myorders"><span class="role">Cliente</span>Mis pedidos</div>
+  <div class="tab" data-tgt="dashboard"><span class="role">Admin</span>Dashboard</div>
+  <div class="tab" data-tgt="products"><span class="role">Admin</span>Productos</div>
+  <div class="tab" data-tgt="inventory"><span class="role">Admin</span>Inventario</div>
+  <div class="tab" data-tgt="orders"><span class="role">Admin</span>Pedidos</div>
+  <div class="tab" data-tgt="reports"><span class="role">Admin</span>Reportes</div>
+</div>
+
+<div class="stage">
+  <div class="frame">
+    <div class="frame-bar">
+      <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+      <div class="url">home-health.app<span class="path" id="urlPath">/login</span></div>
+    </div>
+
+    <!-- ============ LOGIN ============ -->
+    <div class="screen active" id="login">
+      <div class="auth">
+        <div class="auth-left">
+          <div class="auth-logo"><div class="auth-logo-mark">+H</div> Home-Health</div>
+          <div class="auth-headline">
+            <h2>Salud y bienestar al alcance de un clic.</h2>
+            <p>Gestiona tu farmacia, controla tu inventario y atiende a tus clientes desde una sola plataforma sencilla y segura.</p>
+          </div>
+          <div class="auth-features">
+            <div class="auth-feat"><div class="check">✓</div> Catálogo organizado por categorías</div>
+            <div class="auth-feat"><div class="check">✓</div> Pedidos en tiempo real</div>
+            <div class="auth-feat"><div class="check">✓</div> Control de stock y vencimientos</div>
+          </div>
+        </div>
+        <div class="auth-right">
+          <h3>Bienvenido de nuevo 👋</h3>
+          <p class="sub">Inicia sesión para continuar con tu cuenta</p>
+          <div class="form-group">
+            <label class="label">Correo electrónico</label>
+            <input class="input" placeholder="tu@correo.com" value="">
+          </div>
+          <div class="form-group">
+            <label class="label">Contraseña</label>
+            <input class="input" type="password" placeholder="••••••••">
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:18px;color:var(--text-muted)">
+            <label style="display:flex;gap:6px;align-items:center"><input type="checkbox"> Recordarme</label>
+            <a href="#" style="color:var(--primary-dark);font-weight:500;text-decoration:none">¿Olvidaste tu contraseña?</a>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center">Iniciar sesión</button>
+          <div class="auth-foot">¿No tienes cuenta? <a href="#" data-go="register">Crear cuenta</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ REGISTRO ============ -->
+    <div class="screen" id="register">
+      <div class="auth">
+        <div class="auth-left">
+          <div class="auth-logo"><div class="auth-logo-mark">+H</div> Home-Health</div>
+          <div class="auth-headline">
+            <h2>Crea tu cuenta en menos de un minuto.</h2>
+            <p>Únete a Home-Health y comienza a hacer tus pedidos con seguimiento en tiempo real.</p>
+          </div>
+          <div class="auth-features">
+            <div class="auth-feat"><div class="check">✓</div> Acceso al catálogo completo</div>
+            <div class="auth-feat"><div class="check">✓</div> Historial de tus pedidos</div>
+            <div class="auth-feat"><div class="check">✓</div> Información segura y cifrada</div>
+          </div>
+        </div>
+        <div class="auth-right">
+          <h3>Crear cuenta</h3>
+          <p class="sub">Completa tus datos para registrarte como cliente</p>
+          <div class="form-group">
+            <label class="label">Nombre completo</label>
+            <input class="input" placeholder="María Pérez">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label">Correo electrónico</label>
+              <input class="input" placeholder="tu@correo.com">
+            </div>
+            <div class="form-group">
+              <label class="label">Teléfono</label>
+              <input class="input" placeholder="+57 300 000 0000">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="label">Contraseña</label>
+              <input class="input" type="password" placeholder="Mín. 8 caracteres">
+            </div>
+            <div class="form-group">
+              <label class="label">Confirmar contraseña</label>
+              <input class="input" type="password" placeholder="Repite la contraseña">
+            </div>
+          </div>
+          <label style="display:flex;gap:8px;font-size:12px;color:var(--text-muted);margin-bottom:18px">
+            <input type="checkbox"> Acepto los <a href="#" style="color:var(--primary-dark)">términos y condiciones</a>
+          </label>
+          <button class="btn btn-primary" style="width:100%;justify-content:center">Crear cuenta</button>
+          <div class="auth-foot">¿Ya tienes cuenta? <a href="#" data-go="login">Iniciar sesión</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CATÁLOGO (CLIENTE) ============ -->
+    <div class="screen" id="catalog">
+      <div class="app">
+        <aside class="sidebar">
+          <div class="sb-brand"><div class="sb-brand-logo">+H</div><div class="sb-brand-name">Home-Health<span>Cliente</span></div></div>
+          <div class="sb-section">Tienda</div>
+          <div class="sb-link active"><span class="ic">🛍️</span>Catálogo</div>
+          <div class="sb-link"><span class="ic">🛒</span>Mi carrito <span class="badge badge-coral" style="margin-left:auto">3</span></div>
+          <div class="sb-link"><span class="ic">📦</span>Mis pedidos</div>
+          <div class="sb-section">Cuenta</div>
+          <div class="sb-link"><span class="ic">👤</span>Mi perfil</div>
+          <div class="sb-link"><span class="ic">🚪</span>Cerrar sesión</div>
+          <div class="sb-foot">
+            <div class="avatar">MP</div>
+            <div class="sb-foot-info"><b>María Pérez</b><span>Cliente</span></div>
+          </div>
+        </aside>
+        <main class="content">
+          <div class="topnav">
+            <div>
+              <h1>Catálogo de productos</h1>
+              <div class="sub">Encuentra los medicamentos que necesitas</div>
+            </div>
+            <div class="right">
+              <div class="icon-btn" title="Notificaciones">🔔</div>
+              <div class="icon-btn" title="Carrito" style="background:var(--primary);color:#fff;border-color:var(--primary)">🛒<span class="dot-noti" style="background:var(--coral)"></span></div>
+            </div>
+          </div>
+          <div class="filters-bar">
+            <div class="search"><input placeholder="Buscar medicamentos por nombre..."></div>
+            <select class="select" style="width:auto;min-width:180px">
+              <option>Todas las categorías</option>
+              <option>Analgésicos</option>
+              <option>Antibióticos</option>
+              <option>Vitaminas</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+            <span class="chip active">Todos</span>
+            <span class="chip">Analgésicos</span>
+            <span class="chip">Antibióticos</span>
+            <span class="chip">Vitaminas</span>
+            <span class="chip">Cuidado personal</span>
+            <span class="chip">Primeros auxilios</span>
+          </div>
+          <div class="grid-cards">
+            <div class="product">
+              <div class="img">💊</div>
+              <div class="body">
+                <span class="cat">Analgésicos</span>
+                <div class="name">Acetaminofén 500mg</div>
+                <div class="desc">Caja x 20 tabletas. Alivio rápido del dolor y la fiebre.</div>
+                <div class="price-row"><span class="price">$ 8.500</span><span class="stock">Stock: 45</span></div>
+                <button class="add">+ Agregar al carrito</button>
+              </div>
+            </div>
+            <div class="product">
+              <div class="img">🧴</div>
+              <div class="body">
+                <span class="cat">Cuidado personal</span>
+                <div class="name">Alcohol antiséptico 250ml</div>
+                <div class="desc">Solución antiséptica para desinfección de heridas y superficies.</div>
+                <div class="price-row"><span class="price">$ 12.000</span><span class="stock">Stock: 22</span></div>
+                <button class="add">+ Agregar al carrito</button>
+              </div>
+            </div>
+            <div class="product">
+              <div class="img">💉</div>
+              <div class="body">
+                <span class="cat">Antibióticos</span>
+                <div class="name">Amoxicilina 500mg</div>
+                <div class="desc">Cápsulas x 12. Antibiótico de amplio espectro.</div>
+                <div class="price-row"><span class="price">$ 18.900</span><span class="stock" style="color:var(--coral)">Stock bajo: 4</span></div>
+                <button class="add">+ Agregar al carrito</button>
+              </div>
+            </div>
+            <div class="product">
+              <div class="img">🍊</div>
+              <div class="body">
+                <span class="cat">Vitaminas</span>
+                <div class="name">Vitamina C 1000mg</div>
+                <div class="desc">Frasco x 30 tabletas efervescentes sabor naranja.</div>
+                <div class="price-row"><span class="price">$ 24.500</span><span class="stock">Stock: 67</span></div>
+                <button class="add">+ Agregar al carrito</button>
+              </div>
+            </div>
+            <div class="product">
+              <div class="img">🩹</div>
+              <div class="body">
+                <span class="cat">Primeros auxilios</span>
+                <div class="name">Curitas adhesivas x 50</div>
+                <div class="desc">Caja con curitas surtidas resistentes al agua.</div>
+                <div class="price-row"><span class="price">$ 6.900</span><span class="stock">Stock: 110</span></div>
+                <button class="add">+ Agregar al carrito</button>
+              </div>
+            </div>
+            <div class="product">
+              <div class="img">🌡️</div>
+              <div class="body">
+                <span class="cat">Equipos</span>
+                <div class="name">Termómetro digital</div>
+                <div class="desc">Termómetro digital con pantalla LCD y memoria.</div>
+                <div class="price-row"><span class="price">$ 35.000</span><span class="stock">Stock: 18</span></div>
+                <button class="add">+ Agregar al carrito</button>
+              </div>
+            </div>
+            <div class="product">
+              <div class="img">💊</div>
+              <div class="body">
+                <span class="cat">Analgésicos</span>
+                <div class="name">Ibuprofeno 400mg</div>
+                <div class="desc">Caja x 30 tabletas. Antiinflamatorio no esteroideo.</div>
+                <div class="price-row"><span class="price">$ 11.200</span><span class="stock">Stock: 38</span></div>
+                <button class="add">+ Agregar al carrito</button>
+              </div>
+            </div>
+            <div class="product">
+              <div class="img">😴</div>
+              <div class="body">
+                <span class="cat">Cuidado personal</span>
+                <div class="name">Mascarilla quirúrgica x 10</div>
+                <div class="desc">Mascarillas tres pliegues con elástico, no estériles.</div>
+                <div class="price-row"><span class="price">$ 4.500</span><span class="stock" style="color:var(--text-soft)">Sin stock</span></div>
+                <button class="add disabled" disabled>No disponible</button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============ CART / NEW ORDER ============ -->
+    <div class="screen" id="cart">
+      <div class="app">
+        <aside class="sidebar">
+          <div class="sb-brand"><div class="sb-brand-logo">+H</div><div class="sb-brand-name">Home-Health<span>Cliente</span></div></div>
+          <div class="sb-section">Tienda</div>
+          <div class="sb-link"><span class="ic">🛍️</span>Catálogo</div>
+          <div class="sb-link active"><span class="ic">🛒</span>Mi carrito <span class="badge badge-coral" style="margin-left:auto">3</span></div>
+          <div class="sb-link"><span class="ic">📦</span>Mis pedidos</div>
+          <div class="sb-section">Cuenta</div>
+          <div class="sb-link"><span class="ic">👤</span>Mi perfil</div>
+          <div class="sb-link"><span class="ic">🚪</span>Cerrar sesión</div>
+          <div class="sb-foot">
+            <div class="avatar">MP</div>
+            <div class="sb-foot-info"><b>María Pérez</b><span>Cliente</span></div>
+          </div>
+        </aside>
+        <main class="content">
+          <div class="topnav">
+            <div>
+              <h1>Confirmar pedido</h1>
+              <div class="sub">Revisa los productos antes de enviar tu solicitud</div>
+            </div>
+          </div>
+          <div class="cart-layout">
+            <div>
+              <div class="panel mb-4">
+                <div class="panel-h"><h3>Productos en tu carrito (3)</h3><span class="sub">Subtotal calculado automáticamente</span></div>
+                <div class="cart-item">
+                  <div class="img">💊</div>
+                  <div class="info"><div class="n">Acetaminofén 500mg</div><div class="c">Analgésicos · $ 8.500 c/u</div></div>
+                  <div class="qty"><button>−</button><span>2</span><button>+</button></div>
+                  <div style="font-weight:700;width:80px;text-align:right">$ 17.000</div>
+                  <button class="btn-ghost btn btn-sm">🗑</button>
+                </div>
+                <div class="cart-item">
+                  <div class="img">🍊</div>
+                  <div class="info"><div class="n">Vitamina C 1000mg</div><div class="c">Vitaminas · $ 24.500 c/u</div></div>
+                  <div class="qty"><button>−</button><span>1</span><button>+</button></div>
+                  <div style="font-weight:700;width:80px;text-align:right">$ 24.500</div>
+                  <button class="btn-ghost btn btn-sm">🗑</button>
+                </div>
+                <div class="cart-item">
+                  <div class="img">🩹</div>
+                  <div class="info"><div class="n">Curitas adhesivas x 50</div><div class="c">Primeros auxilios · $ 6.900 c/u</div></div>
+                  <div class="qty"><button>−</button><span>3</span><button>+</button></div>
+                  <div style="font-weight:700;width:80px;text-align:right">$ 20.700</div>
+                  <button class="btn-ghost btn btn-sm">🗑</button>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-h"><h3>📍 Dirección de entrega</h3></div>
+                <div class="form-row mb-4">
+                  <div><label class="label">Ciudad</label><input class="input" value="Neiva"></div>
+                  <div><label class="label">Barrio</label><input class="input" placeholder="Ej. Centro"></div>
+                </div>
+                <div class="form-group">
+                  <label class="label">Dirección completa *</label>
+                  <input class="input" placeholder="Calle 8 # 12-34, Apto 502">
+                </div>
+                <div class="form-group">
+                  <label class="label">Indicaciones adicionales (opcional)</label>
+                  <textarea class="input" rows="2" placeholder="Casa blanca con portón verde"></textarea>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="panel" style="position:sticky;top:20px">
+                <div class="panel-h"><h3>Resumen del pedido</h3></div>
+                <div class="summary-row"><span>Subtotal (3 productos)</span><span>$ 62.200</span></div>
+                <div class="summary-row"><span>Domicilio</span><span style="color:var(--success);font-weight:600">Gratis</span></div>
+                <div class="summary-row tot"><span>Total a pagar</span><span>$ 62.200</span></div>
+                <button class="btn btn-primary mt-4" style="width:100%;justify-content:center">Confirmar pedido</button>
+                <button class="btn btn-secondary mt-2" style="width:100%;justify-content:center">Seguir comprando</button>
+                <div class="info-banner mt-4">💡 Tu pedido será enviado con estado "Pendiente" para que la farmacia lo procese.</div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============ MIS PEDIDOS ============ -->
+    <div class="screen" id="myorders">
+      <div class="app">
+        <aside class="sidebar">
+          <div class="sb-brand"><div class="sb-brand-logo">+H</div><div class="sb-brand-name">Home-Health<span>Cliente</span></div></div>
+          <div class="sb-section">Tienda</div>
+          <div class="sb-link"><span class="ic">🛍️</span>Catálogo</div>
+          <div class="sb-link"><span class="ic">🛒</span>Mi carrito</div>
+          <div class="sb-link active"><span class="ic">📦</span>Mis pedidos</div>
+          <div class="sb-section">Cuenta</div>
+          <div class="sb-link"><span class="ic">👤</span>Mi perfil</div>
+          <div class="sb-link"><span class="ic">🚪</span>Cerrar sesión</div>
+          <div class="sb-foot">
+            <div class="avatar">MP</div>
+            <div class="sb-foot-info"><b>María Pérez</b><span>Cliente</span></div>
+          </div>
+        </aside>
+        <main class="content">
+          <div class="topnav">
+            <div>
+              <h1>Mis pedidos</h1>
+              <div class="sub">Sigue el estado de tus solicitudes en tiempo real</div>
+            </div>
+            <div class="right">
+              <select class="select" style="width:auto"><option>Todos los estados</option><option>Pendiente</option><option>En preparación</option><option>En camino</option><option>Entregado</option></select>
+            </div>
+          </div>
+
+          <div class="order-card">
+            <div class="order-head">
+              <div>
+                <div class="order-id">#PED-00128</div>
+                <div class="order-num">Pedido del 02 may 2026</div>
+              </div>
+              <span class="badge badge-warning">⏱ En preparación</span>
+            </div>
+            <div class="order-products">
+              <span class="order-prod">Acetaminofén 500mg ×2</span>
+              <span class="order-prod">Vitamina C 1000mg ×1</span>
+              <span class="order-prod">Curitas x50 ×3</span>
+            </div>
+            <div class="timeline">
+              <div class="tl-item done"><div class="t">Pedido recibido</div><div class="d">02 may 2026 · 10:24 a.m.</div></div>
+              <div class="tl-item cur"><div class="t">En preparación</div><div class="d">02 may 2026 · 11:05 a.m.</div></div>
+              <div class="tl-item" style="opacity:.4"><div class="t">En camino</div><div class="d">Pendiente</div></div>
+              <div class="tl-item" style="opacity:.4"><div class="t">Entregado</div><div class="d">Pendiente</div></div>
+            </div>
+            <div class="order-foot">
+              <span>📍 Calle 8 # 12-34, Neiva</span>
+              <span style="font-weight:700;color:var(--text)">Total: $ 62.200</span>
+            </div>
+          </div>
+
+          <div class="order-card">
+            <div class="order-head">
+              <div>
+                <div class="order-id">#PED-00104</div>
+                <div class="order-num">Pedido del 28 abr 2026</div>
+              </div>
+              <span class="badge badge-success">✓ Entregado</span>
+            </div>
+            <div class="order-products">
+              <span class="order-prod">Ibuprofeno 400mg ×1</span>
+              <span class="order-prod">Termómetro digital ×1</span>
+            </div>
+            <div class="order-foot">
+              <span>📍 Calle 8 # 12-34, Neiva</span>
+              <span style="font-weight:700;color:var(--text)">Total: $ 46.200</span>
+            </div>
+          </div>
+
+          <div class="order-card">
+            <div class="order-head">
+              <div>
+                <div class="order-id">#PED-00091</div>
+                <div class="order-num">Pedido del 22 abr 2026</div>
+              </div>
+              <span class="badge badge-danger">✗ Rechazado</span>
+            </div>
+            <div class="order-products">
+              <span class="order-prod">Amoxicilina 500mg ×5</span>
+            </div>
+            <div class="order-foot">
+              <span>📍 Calle 8 # 12-34, Neiva</span>
+              <span style="font-weight:700;color:var(--text)">Total: $ 94.500</span>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============ DASHBOARD ADMIN ============ -->
+    <div class="screen" id="dashboard">
+      <div class="app">
+        <aside class="sidebar">
+          <div class="sb-brand"><div class="sb-brand-logo">+H</div><div class="sb-brand-name">Home-Health<span>Administrador</span></div></div>
+          <div class="sb-section">Panel</div>
+          <div class="sb-link active"><span class="ic">📊</span>Dashboard</div>
+          <div class="sb-link"><span class="ic">📦</span>Pedidos <span class="badge badge-coral" style="margin-left:auto">5</span></div>
+          <div class="sb-link"><span class="ic">💊</span>Productos</div>
+          <div class="sb-link"><span class="ic">📈</span>Inventario</div>
+          <div class="sb-link"><span class="ic">⏰</span>Vencimientos</div>
+          <div class="sb-section">Gestión</div>
+          <div class="sb-link"><span class="ic">👥</span>Usuarios</div>
+          <div class="sb-link"><span class="ic">📑</span>Reportes</div>
+          <div class="sb-link"><span class="ic">🔔</span>Notificaciones</div>
+          <div class="sb-link"><span class="ic">🚪</span>Cerrar sesión</div>
+          <div class="sb-foot">
+            <div class="avatar tq">SP</div>
+            <div class="sb-foot-info"><b>Sebastián P.</b><span>Admin</span></div>
+          </div>
+        </aside>
+        <main class="content">
+          <div class="topnav">
+            <div>
+              <h1>Buenos días, Sebastián 👋</h1>
+              <div class="sub">Aquí tienes un resumen del estado de la farmacia hoy</div>
+            </div>
+            <div class="right">
+              <div class="icon-btn">🔔<span class="dot-noti"></span></div>
+              <button class="btn btn-primary btn-sm">+ Nuevo producto</button>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="label">Pedidos del día</div>
+              <div class="val">12</div>
+              <div class="delta">↑ 18% vs ayer</div>
+              <div class="icn">📦</div>
+            </div>
+            <div class="stat success">
+              <div class="label">Ingresos del día</div>
+              <div class="val">$ 1.842K</div>
+              <div class="delta">↑ 9% vs ayer</div>
+              <div class="icn">💰</div>
+            </div>
+            <div class="stat coral">
+              <div class="label">Productos con stock bajo</div>
+              <div class="val">7</div>
+              <div class="delta down">⚠ Atención requerida</div>
+              <div class="icn">⚠️</div>
+            </div>
+            <div class="stat warn">
+              <div class="label">Por vencer (30d)</div>
+              <div class="val">4</div>
+              <div class="delta down">2 críticos</div>
+              <div class="icn">⏰</div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="chart-card">
+              <div class="panel-h"><h3>Pedidos últimos 7 días</h3><span class="sub">Tendencia semanal</span></div>
+              <div class="chart-bar">
+                <div class="bar" style="height:55%"><span>Lun</span></div>
+                <div class="bar" style="height:75%"><span>Mar</span></div>
+                <div class="bar" style="height:48%"><span>Mié</span></div>
+                <div class="bar" style="height:88%"><span>Jue</span></div>
+                <div class="bar" style="height:68%"><span>Vie</span></div>
+                <div class="bar coral" style="height:95%"><span>Sáb</span></div>
+                <div class="bar" style="height:62%"><span>Dom</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-h"><h3>⚠️ Alertas activas</h3><a href="#" style="font-size:13px;color:var(--primary-dark);text-decoration:none">Ver todas →</a></div>
+              <div class="alert-box">
+                <span style="font-size:18px">⚠️</span>
+                <div><b>Stock bajo:</b> Amoxicilina 500mg tiene 4 unidades</div>
+              </div>
+              <div class="alert-box warn">
+                <span style="font-size:18px">⏰</span>
+                <div><b>Por vencer:</b> Jarabe expectorante vence en 12 días</div>
+              </div>
+              <div class="alert-box">
+                <span style="font-size:18px">⚠️</span>
+                <div><b>Stock bajo:</b> Termómetro digital tiene 3 unidades</div>
+              </div>
+              <div class="alert-box warn">
+                <span style="font-size:18px">⏰</span>
+                <div><b>Por vencer:</b> Insulina rápida vence en 8 días</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel mt-4">
+            <div class="panel-h"><h3>Pedidos recientes</h3><a href="#" style="font-size:13px;color:var(--primary-dark);text-decoration:none">Ver todos →</a></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Pedido</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado</th><th>Fecha</th></tr></thead>
+                <tbody>
+                  <tr><td><b>#PED-00128</b></td><td>María Pérez</td><td>3 productos</td><td><b>$ 62.200</b></td><td><span class="badge badge-warning">En preparación</span></td><td>Hoy 10:24 am</td></tr>
+                  <tr><td><b>#PED-00127</b></td><td>Carlos Ruiz</td><td>1 producto</td><td><b>$ 18.900</b></td><td><span class="badge badge-coral">Pendiente</span></td><td>Hoy 09:51 am</td></tr>
+                  <tr><td><b>#PED-00126</b></td><td>Laura Gómez</td><td>5 productos</td><td><b>$ 89.500</b></td><td><span class="badge badge-primary">En camino</span></td><td>Hoy 09:12 am</td></tr>
+                  <tr><td><b>#PED-00125</b></td><td>Andrés Soto</td><td>2 productos</td><td><b>$ 23.500</b></td><td><span class="badge badge-success">Entregado</span></td><td>Ayer 04:30 pm</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============ PRODUCTOS ADMIN ============ -->
+    <div class="screen" id="products">
+      <div class="app">
+        <aside class="sidebar">
+          <div class="sb-brand"><div class="sb-brand-logo">+H</div><div class="sb-brand-name">Home-Health<span>Administrador</span></div></div>
+          <div class="sb-section">Panel</div>
+          <div class="sb-link"><span class="ic">📊</span>Dashboard</div>
+          <div class="sb-link"><span class="ic">📦</span>Pedidos</div>
+          <div class="sb-link active"><span class="ic">💊</span>Productos</div>
+          <div class="sb-link"><span class="ic">📈</span>Inventario</div>
+          <div class="sb-link"><span class="ic">⏰</span>Vencimientos</div>
+          <div class="sb-section">Gestión</div>
+          <div class="sb-link"><span class="ic">👥</span>Usuarios</div>
+          <div class="sb-link"><span class="ic">📑</span>Reportes</div>
+          <div class="sb-link"><span class="ic">🔔</span>Notificaciones</div>
+          <div class="sb-link"><span class="ic">🚪</span>Cerrar sesión</div>
+          <div class="sb-foot">
+            <div class="avatar tq">SP</div>
+            <div class="sb-foot-info"><b>Sebastián P.</b><span>Admin</span></div>
+          </div>
+        </aside>
+        <main class="content">
+          <div class="topnav">
+            <div>
+              <h1>Catálogo de productos</h1>
+              <div class="sub">Gestiona el listado de medicamentos disponibles</div>
+            </div>
+            <div class="right">
+              <button class="btn btn-secondary btn-sm">⬇ Exportar</button>
+              <button class="btn btn-primary btn-sm">+ Nuevo producto</button>
+            </div>
+          </div>
+
+          <div class="filters-bar">
+            <div class="search"><input placeholder="Buscar por nombre, categoría o código..."></div>
+            <select class="select" style="width:auto"><option>Todas las categorías</option></select>
+            <select class="select" style="width:auto"><option>Todos los estados</option><option>Stock bajo</option><option>Sin stock</option></select>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Vencimiento</th><th>Estado</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="flex-row"><div style="width:36px;height:36px;border-radius:8px;background:var(--primary-50);display:grid;place-items:center;font-size:16px">💊</div><div><b>Acetaminofén 500mg</b><div class="text-muted" style="font-size:11px">SKU: ACE-500-20</div></div></div></td>
+                  <td>Analgésicos</td><td><b>$ 8.500</b></td><td>45</td><td>15/08/2027</td>
+                  <td><span class="badge badge-success">Disponible</span></td>
+                  <td><div class="row-actions"><button>✏️ Editar</button><button class="danger">🗑 Eliminar</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="flex-row"><div style="width:36px;height:36px;border-radius:8px;background:var(--coral-50);display:grid;place-items:center;font-size:16px">💉</div><div><b>Amoxicilina 500mg</b><div class="text-muted" style="font-size:11px">SKU: AMX-500-12</div></div></div></td>
+                  <td>Antibióticos</td><td><b>$ 18.900</b></td><td><span style="color:var(--coral);font-weight:600">4</span></td><td>20/06/2026</td>
+                  <td><span class="badge badge-coral">Stock bajo</span></td>
+                  <td><div class="row-actions"><button>✏️ Editar</button><button class="danger">🗑 Eliminar</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="flex-row"><div style="width:36px;height:36px;border-radius:8px;background:#FEF3C7;display:grid;place-items:center;font-size:16px">🍊</div><div><b>Vitamina C 1000mg</b><div class="text-muted" style="font-size:11px">SKU: VIT-C-30</div></div></div></td>
+                  <td>Vitaminas</td><td><b>$ 24.500</b></td><td>67</td><td>10/12/2027</td>
+                  <td><span class="badge badge-success">Disponible</span></td>
+                  <td><div class="row-actions"><button>✏️ Editar</button><button class="danger">🗑 Eliminar</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="flex-row"><div style="width:36px;height:36px;border-radius:8px;background:var(--primary-50);display:grid;place-items:center;font-size:16px">🩹</div><div><b>Curitas adhesivas x 50</b><div class="text-muted" style="font-size:11px">SKU: CUR-50</div></div></div></td>
+                  <td>Primeros auxilios</td><td><b>$ 6.900</b></td><td>110</td><td>05/03/2028</td>
+                  <td><span class="badge badge-success">Disponible</span></td>
+                  <td><div class="row-actions"><button>✏️ Editar</button><button class="danger">🗑 Eliminar</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="flex-row"><div style="width:36px;height:36px;border-radius:8px;background:#FEF3C7;display:grid;place-items:center;font-size:16px">🌡️</div><div><b>Termómetro digital</b><div class="text-muted" style="font-size:11px">SKU: TER-DIG-01</div></div></div></td>
+                  <td>Equipos</td><td><b>$ 35.000</b></td><td><span style="color:var(--coral);font-weight:600">3</span></td><td>—</td>
+                  <td><span class="badge badge-coral">Stock bajo</span></td>
+                  <td><div class="row-actions"><button>✏️ Editar</button><button class="danger">🗑 Eliminar</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="flex-row"><div style="width:36px;height:36px;border-radius:8px;background:var(--coral-50);display:grid;place-items:center;font-size:16px">😷</div><div><b>Mascarilla quirúrgica x 10</b><div class="text-muted" style="font-size:11px">SKU: MSK-10</div></div></div></td>
+                  <td>Cuidado personal</td><td><b>$ 4.500</b></td><td><span style="color:var(--text-soft)">0</span></td><td>10/02/2027</td>
+                  <td><span class="badge badge-muted">Sin stock</span></td>
+                  <td><div class="row-actions"><button>✏️ Editar</button><button class="danger">🗑 Eliminar</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--text-muted)">
+            <span>Mostrando 1–6 de 24 productos</span>
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-secondary btn-sm">‹ Anterior</button>
+              <button class="btn btn-secondary btn-sm">Siguiente ›</button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============ INVENTARIO ADMIN ============ -->
+    <div class="screen" id="inventory">
+      <div class="app">
+        <aside class="sidebar">
+          <div class="sb-brand"><div class="sb-brand-logo">+H</div><div class="sb-brand-name">Home-Health<span>Administrador</span></div></div>
+          <div class="sb-section">Panel</div>
+          <div class="sb-link"><span class="ic">📊</span>Dashboard</div>
+          <div class="sb-link"><span class="ic">📦</span>Pedidos</div>
+          <div class="sb-link"><span class="ic">💊</span>Productos</div>
+          <div class="sb-link active"><span class="ic">📈</span>Inventario</div>
+          <div class="sb-link"><span class="ic">⏰</span>Vencimientos</div>
+          <div class="sb-section">Gestión</div>
+          <div class="sb-link"><span class="ic">👥</span>Usuarios</div>
+          <div class="sb-link"><span class="ic">📑</span>Reportes</div>
+          <div class="sb-link"><span class="ic">🔔</span>Notificaciones</div>
+          <div class="sb-link"><span class="ic">🚪</span>Cerrar sesión</div>
+          <div class="sb-foot">
+            <div class="avatar tq">SP</div>
+            <div class="sb-foot-info"><b>Sebastián P.</b><span>Admin</span></div>
+          </div>
+        </aside>
+        <main class="content">
+          <div class="topnav">
+            <div>
+              <h1>Control de inventario</h1>
+              <div class="sub">Registra entradas y salidas de stock</div>
+            </div>
+            <div class="right">
+              <button class="btn btn-secondary btn-sm">⬇ Exportar historial</button>
+            </div>
+          </div>
+
+          <div class="inv-layout">
+            <div class="panel">
+              <div class="panel-h"><h3>📥 Registrar movimiento</h3></div>
+              <div class="form-group">
+                <label class="label">Producto *</label>
+                <select class="select"><option>Selecciona un producto</option><option>Acetaminofén 500mg (Stock: 45)</option><option>Amoxicilina 500mg (Stock: 4)</option></select>
+              </div>
+              <div class="form-group">
+                <label class="label">Tipo de movimiento *</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <label style="display:flex;gap:8px;padding:10px 12px;border:2px solid var(--primary);border-radius:10px;background:var(--primary-50);cursor:pointer;font-size:13px;font-weight:600;color:var(--primary-dark)"><input type="radio" name="mov" checked> 📥 Entrada</label>
+                  <label style="display:flex;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:500"><input type="radio" name="mov"> 📤 Salida</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="label">Cantidad *</label>
+                <input class="input" placeholder="Ej. 50" type="number">
+              </div>
+              <div class="form-group">
+                <label class="label">Observación (opcional)</label>
+                <textarea class="input" rows="3" placeholder="Ej. Compra a proveedor XYZ"></textarea>
+              </div>
+              <button class="btn btn-primary" style="width:100%;justify-content:center">Registrar movimiento</button>
+              <div class="info-banner mt-4">💡 El stock resultante se calcula automáticamente.</div>
+            </div>
+
+            <div>
+              <div class="alert-box mb-4">
+                <span style="font-size:18px">⚠️</span>
+                <div><b>7 productos con stock bajo.</b> Revisa el listado y considera reabastecer pronto.</div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-h"><h3>Historial de movimientos</h3><span class="sub">Últimos 30 días</span></div>
+                <div class="table-wrap" style="border:none">
+                  <table>
+                    <thead><tr><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Resultante</th><th>Fecha</th></tr></thead>
+                    <tbody>
+                      <tr><td><b>Vitamina C 1000mg</b><div class="text-muted" style="font-size:11px">Compra proveedor</div></td><td><span class="badge badge-success">📥 Entrada</span></td><td>+50</td><td><b>67</b></td><td>02/05 10:14am</td></tr>
+                      <tr><td><b>Amoxicilina 500mg</b><div class="text-muted" style="font-size:11px">Pedido #PED-00125</div></td><td><span class="badge badge-coral">📤 Salida</span></td><td>−2</td><td><b>4</b></td><td>02/05 09:30am</td></tr>
+                      <tr><td><b>Acetaminofén 500mg</b><div class="text-muted" style="font-size:11px">Compra proveedor</div></td><td><span class="badge badge-success">📥 Entrada</span></td><td>+100</td><td><b>45</b></td><td>01/05 03:22pm</td></tr>
+                      <tr><td><b>Curitas x50</b><div class="text-muted" style="font-size:11px">Pedido #PED-00120</div></td><td><span class="badge badge-coral">📤 Salida</span></td><td>−3</td><td><b>110</b></td><td>30/04 02:45pm</td></tr>
+                      <tr><td><b>Termómetro digital</b><div class="text-muted" style="font-size:11px">Pedido #PED-00118</div></td><td><span class="badge badge-coral">📤 Salida</span></td><td>−1</td><td><b>3</b></td><td>30/04 11:18am</td></tr>
+                      <tr><td><b>Ibuprofeno 400mg</b><div class="text-muted" style="font-size:11px">Compra proveedor</div></td><td><span class="badge badge-success">📥 Entrada</span></td><td>+30</td><td><b>38</b></td><td>29/04 09:00am</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============ ADMIN PEDIDOS ============ -->
+    <div class="screen" id="orders">
+      <div class="app">
+        <aside class="sidebar">
+          <div class="sb-brand"><div class="sb-brand-logo">+H</div><div class="sb-brand-name">Home-Health<span>Administrador</span></div></div>
+          <div class="sb-section">Panel</div>
+          <div class="sb-link"><span class="ic">📊</span>Dashboard</div>
+          <div class="sb-link active"><span class="ic">📦</span>Pedidos <span class="badge badge-coral" style="margin-left:auto">5</span></div>
+          <div class="sb-link"><span class="ic">💊</span>Productos</div>
+          <div class="sb-link"><span class="ic">📈</span>Inventario</div>
+          <div class="sb-link"><span class="ic">⏰</span>Vencimientos</div>
+          <div class="sb-section">Gestión</div>
+          <div class="sb-link"><span class="ic">👥</span>Usuarios</div>
+          <div class="sb-link"><span class="ic">📑</span>Reportes</div>
+          <div class="sb-link"><span class="ic">🔔</span>Notificaciones</div>
+          <div class="sb-link"><span class="ic">🚪</span>Cerrar sesión</div>
+          <div class="sb-foot">
+            <div class="avatar tq">SP</div>
+            <div class="sb-foot-info"><b>Sebastián P.</b><span>Admin</span></div>
+          </div>
+        </aside>
+        <main class="content">
+          <div class="topnav">
+            <div>
+              <h1>Gestión de pedidos</h1>
+              <div class="sub">Administra el ciclo de vida de cada solicitud</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
+            <span class="chip active">Todos (24)</span>
+            <span class="chip">Pendientes (5)</span>
+            <span class="chip">En preparación (3)</span>
+            <span class="chip">En camino (2)</span>
+            <span class="chip">Entregados (12)</span>
+            <span class="chip">Rechazados (2)</span>
+          </div>
+
+          <div class="grid-2" style="grid-template-columns:1.4fr 1fr">
+            <div class="panel" style="padding:0;overflow:hidden">
+              <div class="table-wrap" style="border:none;border-radius:0">
+                <table>
+                  <thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Fecha</th></tr></thead>
+                  <tbody>
+                    <tr style="background:var(--primary-50)"><td><b>#PED-00128</b></td><td>María Pérez</td><td><b>$ 62.200</b></td><td><span class="badge badge-warning">En preparación</span></td><td>Hoy 10:24am</td></tr>
+                    <tr><td><b>#PED-00127</b></td><td>Carlos Ruiz</td><td><b>$ 18.900</b></td><td><span class="badge badge-coral">Pendiente</span></td><td>Hoy 09:51am</td></tr>
+                    <tr><td><b>#PED-00126</b></td><td>Laura Gómez</td><td><b>$ 89.500</b></td><td><span class="badge badge-primary">En camino</span></td><td>Hoy 09:12am</td></tr>
+                    <tr><td><b>#PED-00125</b></td><td>Andrés Soto</td><td><b>$ 23.500</b></td><td><span class="badge badge-success">Entregado</span></td><td>Ayer 04:30pm</td></tr>
+                    <tr><td><b>#PED-00124</b></td><td>Diana Castro</td><td><b>$ 45.700</b></td><td><span class="badge badge-coral">Pendiente</span></td><td>Ayer 03:14pm</td></tr>
+                    <tr><td><b>#PED-00123</b></td><td>Miguel Torres</td><td><b>$ 31.200</b></td><td><span class="badge badge-success">Entregado</span></td><td>Ayer 11:48am</td></tr>
+                    <tr><td><b>#PED-00122</b></td><td>Ana Martínez</td><td><b>$ 12.500</b></td><td><span class="badge badge-danger">Rechazado</span></td><td>30/04 02:30pm</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="detail">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+                <div>
+                  <div class="text-muted" style="font-size:12px">Pedido seleccionado</div>
+                  <h3 style="font-size:18px;font-weight:700">#PED-00128</h3>
+                </div>
+                <span class="badge badge-warning">En preparación</span>
+              </div>
+              <div style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:14px">
+                <div><b style="color:var(--text)">Cliente:</b> María Pérez</div>
+                <div><b style="color:var(--text)">Tel:</b> +57 300 555 1234</div>
+                <div><b style="color:var(--text)">📍 Dirección:</b> Calle 8 # 12-34, Neiva</div>
+                <div><b style="color:var(--text)">Fecha:</b> 02 may 2026 · 10:24 a.m.</div>
+              </div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Productos</div>
+              <div style="background:var(--bg);border-radius:10px;padding:10px;font-size:13px;margin-bottom:14px">
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light)"><span>Acetaminofén 500mg ×2</span><b>$ 17.000</b></div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-light)"><span>Vitamina C 1000mg ×1</span><b>$ 24.500</b></div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0"><span>Curitas x50 ×3</span><b>$ 20.700</b></div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid var(--border);margin-top:6px;font-weight:700"><span>Total</span><span>$ 62.200</span></div>
+              </div>
+
+              <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Cambiar estado</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+                <button class="btn btn-secondary btn-sm" disabled style="opacity:.5">⏱ Pendiente</button>
+                <button class="btn btn-primary btn-sm">📦 En preparación ✓</button>
+                <button class="btn btn-secondary btn-sm">🚚 En camino</button>
+                <button class="btn btn-secondary btn-sm">✅ Entregado</button>
+              </div>
+              <button class="btn btn-danger btn-sm" style="width:100%;justify-content:center">✗ Rechazar pedido</button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- ============ REPORTES ============ -->
+    <div class="screen" id="reports">
+      <div class="app">
+        <aside class="sidebar">
+          <div class="sb-brand"><div class="sb-brand-logo">+H</div><div class="sb-brand-name">Home-Health<span>Administrador</span></div></div>
+          <div class="sb-section">Panel</div>
+          <div class="sb-link"><span class="ic">📊</span>Dashboard</div>
+          <div class="sb-link"><span class="ic">📦</span>Pedidos</div>
+          <div class="sb-link"><span class="ic">💊</span>Productos</div>
+          <div class="sb-link"><span class="ic">📈</span>Inventario</div>
+          <div class="sb-link"><span class="ic">⏰</span>Vencimientos</div>
+          <div class="sb-section">Gestión</div>
+          <div class="sb-link"><span class="ic">👥</span>Usuarios</div>
+          <div class="sb-link active"><span class="ic">📑</span>Reportes</div>
+          <div class="sb-link"><span class="ic">🔔</span>Notificaciones</div>
+          <div class="sb-link"><span class="ic">🚪</span>Cerrar sesión</div>
+          <div class="sb-foot">
+            <div class="avatar tq">SP</div>
+            <div class="sb-foot-info"><b>Sebastián P.</b><span>Admin</span></div>
+          </div>
+        </aside>
+        <main class="content">
+          <div class="topnav">
+            <div>
+              <h1>Reportes</h1>
+              <div class="sub">Genera y exporta información consolidada</div>
+            </div>
+          </div>
+
+          <div class="panel mb-4">
+            <div class="panel-h"><h3>Configuración del reporte</h3></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:14px;align-items:end">
+              <div>
+                <label class="label">Tipo de reporte</label>
+                <select class="select">
+                  <option>📊 Inventario actual</option>
+                  <option>📦 Pedidos por período</option>
+                  <option>📈 Movimientos de stock</option>
+                  <option>⏰ Productos por vencer</option>
+                </select>
+              </div>
+              <div>
+                <label class="label">Fecha inicio</label>
+                <input class="input" type="date" value="2026-04-01">
+              </div>
+              <div>
+                <label class="label">Fecha fin</label>
+                <input class="input" type="date" value="2026-05-04">
+              </div>
+              <button class="btn btn-primary">⚡ Generar</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-h">
+              <div>
+                <h3>📦 Pedidos por período</h3>
+                <span class="sub">01 abr 2026 — 04 may 2026 · 47 registros</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-secondary btn-sm">📄 Exportar PDF</button>
+                <button class="btn btn-coral btn-sm" style="color:#fff">📊 Exportar Excel</button>
+              </div>
+            </div>
+
+            <div class="grid-3 mb-4">
+              <div class="stat" style="padding:14px">
+                <div class="label">Total pedidos</div>
+                <div class="val" style="font-size:22px">47</div>
+                <div class="icn" style="width:32px;height:32px;font-size:14px">📦</div>
+              </div>
+              <div class="stat success" style="padding:14px">
+                <div class="label">Ingresos totales</div>
+                <div class="val" style="font-size:22px">$ 2.18M</div>
+                <div class="icn" style="width:32px;height:32px;font-size:14px">💰</div>
+              </div>
+              <div class="stat coral" style="padding:14px">
+                <div class="label">Ticket promedio</div>
+                <div class="val" style="font-size:22px">$ 46.4K</div>
+                <div class="icn" style="width:32px;height:32px;font-size:14px">📈</div>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Pedido</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado final</th><th>Fecha</th></tr></thead>
+                <tbody>
+                  <tr><td><b>#PED-00128</b></td><td>María Pérez</td><td>3 productos</td><td><b>$ 62.200</b></td><td><span class="badge badge-warning">En preparación</span></td><td>02/05/2026</td></tr>
+                  <tr><td><b>#PED-00127</b></td><td>Carlos Ruiz</td><td>1 producto</td><td><b>$ 18.900</b></td><td><span class="badge badge-coral">Pendiente</span></td><td>02/05/2026</td></tr>
+                  <tr><td><b>#PED-00126</b></td><td>Laura Gómez</td><td>5 productos</td><td><b>$ 89.500</b></td><td><span class="badge badge-success">Entregado</span></td><td>02/05/2026</td></tr>
+                  <tr><td><b>#PED-00125</b></td><td>Andrés Soto</td><td>2 productos</td><td><b>$ 23.500</b></td><td><span class="badge badge-success">Entregado</span></td><td>01/05/2026</td></tr>
+                  <tr><td><b>#PED-00124</b></td><td>Diana Castro</td><td>4 productos</td><td><b>$ 45.700</b></td><td><span class="badge badge-success">Entregado</span></td><td>01/05/2026</td></tr>
+                  <tr><td><b>#PED-00122</b></td><td>Ana Martínez</td><td>1 producto</td><td><b>$ 12.500</b></td><td><span class="badge badge-danger">Rechazado</span></td><td>30/04/2026</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="text-align:center;padding:14px;color:var(--text-muted);font-size:13px">Mostrando 1–6 de 47 registros</div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const screens = document.querySelectorAll('.screen');
+  const urlPath = document.getElementById('urlPath');
+  const paths = {login:'/login',register:'/register',catalog:'/catalog',cart:'/order/new',myorders:'/my-orders',dashboard:'/admin/dashboard',products:'/admin/products',inventory:'/admin/inventory',orders:'/admin/orders',reports:'/admin/reports'};
+  function go(id){
+    tabs.forEach(t=>t.classList.toggle('active',t.dataset.tgt===id));
+    screens.forEach(s=>s.classList.toggle('active',s.id===id));
+    urlPath.textContent = paths[id] || '/';
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  tabs.forEach(t=>t.addEventListener('click',()=>go(t.dataset.tgt)));
+  document.querySelectorAll('[data-go]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();go(a.dataset.go)}));
+  document.querySelectorAll('.sb-link').forEach(l=>{l.addEventListener('click',e=>{const labels=Array.from(l.parentNode.querySelectorAll('.sb-link'));labels.forEach(x=>x.classList.remove('active'));l.classList.add('active');});});
+</script>
+</body>
+</html>

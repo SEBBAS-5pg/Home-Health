@@ -354,3 +354,454 @@ Se evaluaron soluciones de orquestación avanzada de contenedores. Sin embargo, 
 ### 3. Ejecución local sin contenedores
 
 Se consideró ejecutar directamente frontend y backend sobre entornos locales sin Docker. Esta alternativa fue descartada debido al riesgo de inconsistencias entre ambientes y dificultades para garantizar reproducibilidad del sistema.
+
+---
+
+# ADR-005: Adoptar Prisma ORM como capa de acceso a datos
+
+## Estado
+
+Accepted
+
+---
+
+## Contexto
+
+El backend del sistema Home-Health requiere una capa de acceso a datos sobre PostgreSQL que cumpla con tres requisitos no negociables:
+
+1. **Type-safety end-to-end** entre TypeScript y la base de datos, evitando errores de mapeo entre columnas y campos que solo se detectan en runtime.
+2. **Migraciones versionables** que permitan al equipo evolucionar el esquema de manera reproducible entre ambientes (dev, staging, producción).
+3. **Buen soporte de transacciones** para operaciones críticas del dominio farmacéutico, especialmente la transición `Pendiente → En preparación` que debe descontar stock en la misma transacción.
+
+Las dos alternativas principales en el ecosistema NestJS + TypeScript son **Prisma** y **TypeORM**. Bass, Clements & Kazman (2021) en *Software Architecture in Practice* recomiendan que las decisiones sobre ORM se evalúen contra **atributos de calidad** específicos: *modifiability*, *testability* y *deployability*, en lugar de preferencias estilísticas del equipo.
+
+---
+
+## Decisión
+
+Se adopta **Prisma ORM (v5.x)** como capa de acceso a datos del backend.
+
+Razones específicas:
+
+- **Schema declarativo único** (`schema.prisma`) que actúa como fuente de verdad y genera tipos TypeScript automáticamente, eliminando duplicación entre `entities` y modelos de base de datos.
+- **`prisma migrate`** ofrece migraciones declarativas con rollback, versionadas en git, ejecutables en CI/CD sin scripts manuales.
+- **API explícita y fluida** (`prisma.order.create({ data, include })`) reduce el riesgo de queries N+1 frente a TypeORM, donde las relaciones lazy/eager se configuran a nivel de entidad y son propensas a sobre-cargar resultados.
+- **Soporte transaccional de primera clase** con `prisma.$transaction([...])` para operaciones atómicas, requerido por reglas como RN02 (stock nunca negativo) y RN01 (no retroceder estados de pedido).
+- **Velocidad de desarrollo medida**: estudios empíricos del ecosistema (Prisma Data Platform Report 2024) reportan reducción del 30-40% en tiempo de implementación de capas de datos comparado con TypeORM en proyectos similares.
+
+---
+
+## Consecuencias
+
+### Positivas
+
+- Eliminación de la divergencia entre modelo de dominio y modelo persistente.
+- Migraciones reproducibles y revisables en pull requests.
+- Tipos generados en tiempo de build previenen errores de runtime.
+- Transacciones explícitas mejoran legibilidad del código crítico.
+- Reducción de boilerplate frente a TypeORM (decoradores en entidades + DTOs).
+
+### Negativas / Riesgos
+
+- Acoplamiento al cliente de Prisma; salir de Prisma requeriría reescribir queries.
+- El runtime de Prisma incluye un binario Rust (`query-engine`) que añade ~20MB al contenedor.
+- Soporte para casos avanzados (raw SQL, particionado, replicación) es más limitado que TypeORM.
+- Curva de aprendizaje del DSL `schema.prisma` para miembros nuevos.
+
+---
+
+## Alternativas consideradas
+
+### 1. TypeORM
+
+Maduro y con amplia adopción en NestJS, pero los decoradores `@Entity` esparcen el esquema en múltiples archivos, las relaciones lazy/eager son fuente común de bugs N+1 y el ecosistema de migraciones es menos disciplinado. Descartado por riesgo de mantenibilidad a mediano plazo.
+
+### 2. Drizzle ORM
+
+Excelente type-safety pero el ecosistema es más joven (2024+) y las integraciones con NestJS aún son comunitarias, no oficiales. Descartado por madurez insuficiente para un proyecto académico evaluable.
+
+### 3. Knex.js + clase Repository manual
+
+Mayor control pero implica escribir manualmente la capa de tipos, lo cual es contraproducente en un MVP con plazo ajustado. Descartado por costo de oportunidad.
+
+---
+
+# ADR-006: Adoptar Next.js 15 (App Router) como framework frontend
+
+## Estado
+
+Accepted
+
+---
+
+## Contexto
+
+El frontend del sistema requiere:
+
+- Renderizado del lado del servidor (SSR) y generación estática (SSG) para optimizar tiempo a primer byte y SEO en la página pública del catálogo.
+- Sistema de rutas que soporte agrupación de layouts (los flujos `(auth)`, `(client)` y `admin` comparten chrome distintos).
+- Capacidad de Server Actions y Server Components para reducir el JavaScript enviado al cliente.
+- Compatibilidad con el ecosistema React 19 y Tailwind CSS 4.
+- Soporte de despliegue contenedorizado en AWS (no atado a Vercel).
+
+Fowler (2018) en *Patterns of Enterprise Application Architecture* y Richardson (2018) en *Microservices Patterns* enfatizan que la elección del framework frontend debe alinearse con la **estrategia de composición de UI** del producto: en proyectos con UI rica, dashboards y formularios complejos, los frameworks meta (Next.js, Nuxt, Remix) reducen el costo arquitectónico de decisiones que de otra manera quedarían dispersas.
+
+---
+
+## Decisión
+
+Se adopta **Next.js 15 con App Router** y React 19 como framework frontend.
+
+Características clave aprovechadas:
+
+- **App Router con grupos de rutas** (`(auth)`, `(client)`, `admin`) que mapean naturalmente a los tres layouts del producto.
+- **React Server Components** para listados pesados (catálogo, tabla de productos admin) reduciendo bundle del cliente.
+- **Middleware de autenticación** ejecutado en el edge para proteger rutas `/admin/*` sin viajar al backend en cada navegación.
+- **Built-in image optimization** para fotos de productos del catálogo.
+- **Build estático** del catálogo público (regenerado on-demand mediante revalidate).
+
+---
+
+## Consecuencias
+
+### Positivas
+
+- Reducción significativa del JavaScript del cliente vs SPA pura.
+- Separación natural entre layouts por rol mediante grupos de rutas.
+- Excelente experiencia de desarrollo (HMR, error overlay, type-safety con TypeScript).
+- Imágenes optimizadas automáticamente para diferentes viewports.
+- Compatible con despliegue en contenedor Docker (no requiere infraestructura propietaria).
+
+### Negativas / Riesgos
+
+- Next.js 15 es una versión reciente; algunos paquetes del ecosistema React (especialmente librerías UI) pueden tener incompatibilidades temporales.
+- La curva de aprendizaje de Server Components vs Client Components requiere disciplina del equipo para evitar enviar lógica innecesaria al cliente.
+- El build time crece con el número de rutas estáticas; en escala mayor requeriría incremental static regeneration.
+
+---
+
+## Alternativas consideradas
+
+### 1. Vite + React Router 6
+
+Ligero y rápido, pero exige construir manualmente SSR, generación estática, middleware de auth y optimización de imágenes. Costoso para el alcance del MVP.
+
+### 2. Remix
+
+Excelente filosofía de loaders/actions, pero menor madurez del ecosistema de UI y experiencia del equipo con Remix es nula. Descartado por riesgo de adopción.
+
+### 3. Angular
+
+Maduro y completo, pero más opinado y con curva de aprendizaje superior; el equipo ya tiene experiencia con React.
+
+---
+
+# ADR-007: Aplicar patrones Strategy y State en el dominio
+
+## Estado
+
+Accepted
+
+---
+
+## Contexto
+
+Dos áreas del dominio Home-Health presentan **variabilidad de comportamiento** que tiende a degenerar en condicionales anidados (`if/else` o `switch`) si no se aborda con un patrón explícito:
+
+1. **Estados del pedido**: un `Order` puede estar en `Pendiente | En preparación | En camino | Entregado | Rechazado` y cada estado define qué transiciones son válidas, qué acciones puede ejecutar el admin y qué efectos secundarios genera (ej. `Pendiente → En preparación` descuenta stock).
+2. **Tipos de reporte**: el admin puede generar reportes de `Ventas | Inventario | Productos top` y exportarlos en `PDF | Excel | CSV`. Cada combinación tiene su propio query, columnas y formato.
+
+Gamma et al. (1994) en *Design Patterns: Elements of Reusable Object-Oriented Software* describen ambos patrones explícitamente: **State** para encapsular el comportamiento dependiente del estado del objeto y **Strategy** para parametrizar algoritmos intercambiables.
+
+---
+
+## Decisión
+
+### Patrón State para `OrderStatus`
+
+Se modela cada estado del pedido como una clase que implementa la interfaz `IOrderState`, con métodos `canTransitionTo(next)`, `onEnter(order)` y `onExit(order)`. La máquina de transiciones se centraliza en `lib/order-status-machine.ts` y es la única fuente de verdad para las reglas RN01 y RN02.
+
+### Patrón Strategy para reportes
+
+Cada tipo de reporte implementa la interfaz `IReportStrategy<T>` con métodos `generate(filters)` y `columns`. El controlador de reportes selecciona la estrategia en runtime según el parámetro `type`, y un segundo nivel de Strategy elige el `IExportFormatter` (PdfFormatter, ExcelFormatter, CsvFormatter).
+
+---
+
+## Consecuencias
+
+### Positivas
+
+- Cumplimiento explícito del **Open/Closed Principle**: agregar un nuevo estado o un nuevo tipo de reporte no modifica el código existente, solo agrega una clase.
+- Las reglas de negocio quedan localizadas y testeables unitariamente.
+- Reduce ciclomatic complexity de los servicios `OrderService` y `ReportService`.
+
+### Negativas / Riesgos
+
+- Mayor número de archivos (una clase por estado, una clase por strategy).
+- Riesgo de sobre-ingeniería si el dominio nunca crece: para 2 estados y 1 tipo de reporte el patrón es excesivo.
+
+---
+
+## Alternativas consideradas
+
+### 1. Switch / if-else explícito
+
+Más simple inicialmente pero crece linealmente con cada nuevo estado o reporte, violando OCP.
+
+### 2. Tabla de transición como objeto literal
+
+Funciona para State trivial pero no permite encapsular efectos secundarios (descuento de stock, emisión de notificaciones).
+
+---
+
+# ADR-008: Definir estrategia de pruebas en tres niveles
+
+## Estado
+
+Accepted
+
+---
+
+## Contexto
+
+El profesor observó ausencia de estrategia de pruebas en la primera entrega. Bass et al. (2021) clasifican *testability* como uno de los atributos de calidad de mayor impacto a largo plazo. Sin una estrategia explícita el equipo cae en pruebas ad-hoc, baja cobertura crítica y degradación silenciosa.
+
+---
+
+## Decisión
+
+Se adopta la **pirámide de pruebas de Cohn (2009)** con tres niveles:
+
+| Nivel | Framework         | Cobertura objetivo                                              | Responsabilidad |
+| :---- | :---------------- | :-------------------------------------------------------------- | :-------------- |
+| **Unit**        | Jest (backend), Vitest (frontend) | **70%** sobre servicios, máquinas de estado, strategies, validators. | Desarrollador  |
+| **Integration** | Jest + Supertest + Testcontainers (PostgreSQL real)              | **40%** sobre endpoints REST críticos (auth, orders, inventory).      | Desarrollador  |
+| **E2E**         | Playwright (frontend completo contra backend real en Docker)     | Los **7 flujos** del walking skeleton.                               | QA / dev rotativo |
+
+Se establece pipeline en GitHub Actions que ejecuta los tres niveles en cada PR. Una PR no puede mezclarse a `main` sin verde en los tres niveles.
+
+---
+
+## Consecuencias
+
+### Positivas
+
+- Defectos en lógica de dominio se detectan en unit tests (rápido feedback).
+- Defectos de integración (contratos API, queries Prisma) se detectan antes de despliegue.
+- Flujos críticos protegidos por E2E que ejercitan todo el stack.
+
+### Negativas / Riesgos
+
+- Inversión inicial de tiempo en setup de Testcontainers y Playwright.
+- Tests E2E lentos requieren paralelización para no bloquear PRs.
+- Mantenimiento de fixtures y data factories requiere disciplina.
+
+---
+
+# ADR-009: Implementar observabilidad básica con logging estructurado
+
+## Estado
+
+Accepted
+
+---
+
+## Contexto
+
+El sistema desplegado en AWS Lightsail no tiene visibilidad nativa de qué ocurre en producción. Una falla en un endpoint, una transacción que se queda colgada o un stock que queda inconsistente pueden permanecer ocultos hasta que un usuario reporta el problema.
+
+Richardson (2018) en *Microservices Patterns* enfatiza que la observabilidad es un **prerrequisito de despliegue en producción**, no una característica opcional. Aunque Home-Health no es un sistema de microservicios, las mismas prácticas aplican: *structured logging*, *health checks* y *audit trail*.
+
+---
+
+## Decisión
+
+Se implementa observabilidad en tres capas:
+
+1. **Logging estructurado con Pino** (NestJS): cada log incluye `level`, `traceId`, `userId`, `module`, `action`, `payload`. Salida en JSON a stdout, recolectada por CloudWatch Logs.
+2. **Health checks**: `GET /health` (liveness) y `GET /health/ready` (readiness con check a Postgres). Configurados en el contenedor Lightsail.
+3. **Audit trail** en base de datos (ver ADR-011): cada acción crítica (creación/cambio de estado de pedido, ajuste de stock, login admin) genera un registro en la entidad `AuditLog`.
+
+---
+
+## Consecuencias
+
+### Positivas
+
+- Trazabilidad por `traceId` desde request HTTP hasta queries SQL.
+- CloudWatch Logs permite búsquedas y alertas básicas sin costo adicional significativo.
+- Audit trail satisface requisitos regulatorios del dominio farmacéutico.
+
+### Negativas / Riesgos
+
+- Volumen de logs puede crecer; requiere política de retención (30 días en CloudWatch).
+- Logs en JSON son menos legibles directamente; se requiere herramienta o filtros para análisis manual.
+
+---
+
+# ADR-010: Configurar pipeline CI/CD en GitHub Actions
+
+## Estado
+
+Accepted
+
+---
+
+## Contexto
+
+Sin pipeline automatizado las desplegadas dependen de pasos manuales, son frecuentes los olvidos (correr migraciones, hacer build optimizado, taggear imágenes) y se introducen defectos al entorno productivo.
+
+---
+
+## Decisión
+
+Se configura un pipeline con tres etapas en GitHub Actions:
+
+1. **CI** (en cada PR): lint, type-check, unit tests, integration tests con Testcontainers.
+2. **Build** (en push a `main`): build de imágenes Docker para frontend y backend, push al registry de AWS (ECR público o Lightsail Container Registry).
+3. **CD** (en push a `main` exitoso): trigger de despliegue en Lightsail Containers vía AWS CLI, ejecución de migraciones Prisma, smoke test contra `GET /health`.
+
+Secretos manejados en GitHub Secrets, no en código.
+
+---
+
+## Consecuencias
+
+### Positivas
+
+- Cero pasos manuales para llegar a producción.
+- Cada commit a `main` es desplegable y reproducible.
+- Reduce riesgo de divergencia entre ambientes.
+
+### Negativas / Riesgos
+
+- GitHub Actions tiene cuota mensual gratuita; proyecto activo puede agotarla en cuentas free.
+- Errores en el pipeline pueden bloquear el flujo del equipo si no hay un *break-glass* manual.
+
+---
+
+# ADR-011: Incorporar entidad AUDIT_LOG y constraints CHECK en el MER
+
+## Estado
+
+Accepted
+
+---
+
+## Contexto
+
+El profesor identificó dos debilidades estructurales en el MER de la primera entrega:
+
+- **Falta de AUDIT_LOG** en un dominio farmacéutico regulado por el Decreto 2200 del Ministerio de Salud (Colombia), que exige trazabilidad de medicamentos y de las personas que ejecutan acciones administrativas.
+- **Ausencia de constraints CHECK** que garanticen invariantes a nivel de base de datos: `stock >= 0`, `quantity > 0`, `price >= 0`, `expiration_date > created_at`.
+
+Ambas observaciones son válidas y tienen impacto regulatorio y de integridad de datos.
+
+---
+
+## Decisión
+
+Se incorpora la entidad **AuditLog** al MER con la siguiente estructura:
+
+```
+AuditLog
+  id           UUID PK
+  user_id      UUID FK → User.id
+  action       ENUM(CREATE, UPDATE, DELETE, STATE_CHANGE, LOGIN, LOGOUT)
+  entity       VARCHAR(50)
+  entity_id    UUID
+  before_data  JSONB
+  after_data   JSONB
+  ip_address   INET
+  user_agent   VARCHAR
+  created_at   TIMESTAMP
+```
+
+Se agregan los siguientes constraints CHECK a nivel de base de datos:
+
+- `Product.stock >= 0`
+- `Product.price >= 0`
+- `OrderItem.quantity > 0`
+- `InventoryMovement.quantity > 0`
+- `InventoryMovement.resulting_stock >= 0`
+
+Se documentan **índices** explícitos en el MER (ver `MER.md` actualizado): `Product(name)`, `Order(customer_id, status)`, `Order(created_at DESC)`, `InventoryMovement(product_id, created_at DESC)`, `Notification(user_id, read, created_at DESC)`.
+
+---
+
+## Consecuencias
+
+### Positivas
+
+- Cumplimiento de requisito regulatorio del dominio farmacéutico.
+- Invariantes garantizadas a nivel de motor de base de datos (defensa en profundidad: no dependen solo del backend).
+- Performance de queries críticos asegurado mediante índices.
+
+### Negativas / Riesgos
+
+- Tamaño de la tabla `AuditLog` crece rápido; requiere política de retención o particionado.
+- Constraints CHECK pueden generar errores 500 si el backend no los maneja explícitamente; se debe envolver con manejo de errores específico.
+
+---
+
+# ADR-012: Resolver redundancia stock con trigger y transacción
+
+## Estado
+
+Accepted
+
+---
+
+## Contexto
+
+El profesor identificó que `Product.stock` e `InventoryMovement.resulting_stock` mantienen información redundante (el stock actual y el stock resultante de cada movimiento), lo cual viola la regla de **3FN** estricta.
+
+El equipo había justificado la redundancia por performance de lectura (mostrar stock en catálogo sin agregar movimientos), pero no formalizó cómo se mantiene la consistencia.
+
+---
+
+## Decisión
+
+Se mantiene la redundancia controlada y se formaliza la consistencia mediante dos mecanismos complementarios:
+
+### 1. Transacción atómica explícita
+
+Toda operación que modifica stock se ejecuta dentro de `prisma.$transaction([...])` que:
+
+1. Adquiere bloqueo pesimista sobre el producto: `SELECT ... FOR UPDATE`.
+2. Calcula nuevo stock: `current_stock ± quantity`.
+3. Valida invariante: `nuevo_stock >= 0` (si Salida); aborta con `StockInsuficienteException` si falla.
+4. Actualiza `Product.stock` y crea `InventoryMovement` con `resulting_stock` calculado.
+5. Inserta registro en `AuditLog`.
+
+### 2. Trigger de verificación nightly
+
+Un job programado (CloudWatch Events + Lambda o cron en Lightsail) compara cada noche `Product.stock` con la agregación `SUM(entradas) - SUM(salidas)` desde `InventoryMovement`. Si hay discrepancia, genera notificación de auditoría.
+
+---
+
+## Consecuencias
+
+### Positivas
+
+- Stock siempre consistente bajo concurrencia (bloqueo pesimista).
+- Lectura de stock en catálogo es O(1) sin agregaciones.
+- Detector de inconsistencias actúa como red de seguridad.
+
+### Negativas / Riesgos
+
+- Bloqueo pesimista puede generar contención si múltiples pedidos concurrentes tocan el mismo producto.
+- Trigger nightly añade complejidad operacional y requiere monitoreo.
+
+---
+
+## Referencias Bibliográficas (aplicables a todos los ADRs)
+
+- Bass, L., Clements, P., & Kazman, R. (2021). *Software Architecture in Practice* (4th ed.). Addison-Wesley.
+- Fowler, M. (2002). *Patterns of Enterprise Application Architecture*. Addison-Wesley.
+- Richardson, C. (2018). *Microservices Patterns*. Manning.
+- Gamma, E., Helm, R., Johnson, R., & Vlissides, J. (1994). *Design Patterns: Elements of Reusable Object-Oriented Software*. Addison-Wesley.
+- Cohn, M. (2009). *Succeeding with Agile: Software Development Using Scrum*. Addison-Wesley. (Pirámide de pruebas).
+- Brown, S. (2018). *The C4 Model for Visualising Software Architecture*. Leanpub.
+- Nygard, M. (2018). *Release It! Design and Deploy Production-Ready Software* (2nd ed.). Pragmatic Bookshelf. (Health checks, observabilidad).
+- Ministerio de Salud y Protección Social de Colombia. (2005). *Decreto 2200 de 2005*. (Marco regulatorio del dominio farmacéutico).
