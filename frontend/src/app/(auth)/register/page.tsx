@@ -8,6 +8,8 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { registerSchema, RegisterInput } from "@/lib/validators";
+import { api, USE_MOCK } from "@/lib/api";
+import { toast } from "@/hooks/useToast";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,13 +23,28 @@ export default function RegisterPage() {
   });
 
   const onSubmit = async (data: RegisterInput) => {
-    // TODO: integrar con backend real
-    // await api.post("/auth/register", data)
-
-    // MOCK: simulación
-    await new Promise((r) => setTimeout(r, 700));
-    alert("Cuenta creada exitosamente");
-    router.push("/login");
+    try {
+      if (USE_MOCK) {
+        await new Promise((r) => setTimeout(r, 700));
+      } else {
+        await api.post("/auth/register", {
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone,
+          password: data.password,
+        });
+      }
+      toast.success("¡Cuenta creada! Ya puedes iniciar sesión.");
+      router.push("/login");
+    } catch (err: any) {
+      // Mostramos exactamente lo que vino del backend.
+      const msg =
+        err?.response?.data?.error?.message ??
+        err?.response?.data?.message ??
+        err?.message ??
+        "No se pudo crear la cuenta. Intenta de nuevo.";
+      toast.error(msg);
+    }
   };
 
   return (
@@ -100,25 +117,6 @@ export default function RegisterPage() {
             />
           </div>
         </div>
-
-        <label className="flex gap-2 text-xs text-text-muted items-start mt-2">
-          <input
-            type="checkbox"
-            className="accent-primary-500 mt-0.5"
-            {...register("acceptTerms")}
-          />
-          <span>
-            Acepto los{" "}
-            <Link href="#" className="text-primary-700 font-semibold hover:underline">
-              términos y condiciones
-            </Link>
-          </span>
-        </label>
-        {errors.acceptTerms && (
-          <p className="text-xs text-coral-600 font-medium -mt-2">
-            {errors.acceptTerms.message}
-          </p>
-        )}
 
         <Button type="submit" fullWidth disabled={isSubmitting} className="mt-2">
           {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}

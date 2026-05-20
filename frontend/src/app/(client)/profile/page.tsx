@@ -10,20 +10,13 @@ import { Button } from "@/components/ui/Button";
 
 export default function ProfilePage() {
   const [original, setOriginal] = useState({ fullName: "", phone: "" });
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", role: "" });
-  const [userId, setUserId] = useState<string>();
+  const [form, setForm] = useState({ fullName: "", email: "", phone: "" });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     void userService.getCurrent().then((u) => {
       if (!u) return;
-      setUserId(u.id);
-      setForm({
-        fullName: u.fullName,
-        email: u.email,
-        phone: u.phone,
-        role: u.role,
-      });
+      setForm({ fullName: u.fullName, email: u.email, phone: u.phone });
       setOriginal({ fullName: u.fullName, phone: u.phone });
     });
   }, []);
@@ -32,21 +25,22 @@ export default function ProfilePage() {
     form.fullName !== original.fullName || form.phone !== original.phone;
 
   const handleSave = async () => {
-    if (!userId) return;
     if (!hasChanges) {
       toast.info("No hay cambios para guardar");
       return;
     }
     setSubmitting(true);
     try {
-      await userService.updateProfile(userId, {
+      // El backend trata `/users/me` distinto que `/users/:id`. Pasamos "me".
+      await userService.updateProfile("me", {
         fullName: form.fullName,
         phone: form.phone,
       });
       setOriginal({ fullName: form.fullName, phone: form.phone });
       toast.success("Perfil actualizado correctamente");
-    } catch {
-      toast.error("No se pudo actualizar el perfil");
+    } catch (err: any) {
+      const msg = err?.response?.data?.error?.message ?? "No se pudo actualizar el perfil";
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -81,10 +75,6 @@ export default function ProfilePage() {
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
               </div>
-            </div>
-            <div>
-              <Label htmlFor="role">Rol</Label>
-              <Input id="role" value={form.role} disabled className="capitalize" />
             </div>
           </div>
           <div className="mt-6 flex gap-2 justify-end">

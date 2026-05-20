@@ -51,8 +51,12 @@ export default function AdminProductsPage() {
       setEditing(null);
       setCreating(false);
       void refetch();
-    } catch {
-      toast.error("No se pudo guardar el producto");
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.error?.message ??
+        e?.message ??
+        "No se pudo guardar el producto";
+      toast.error(msg);
     }
   };
 
@@ -63,8 +67,9 @@ export default function AdminProductsPage() {
       toast.success("Producto eliminado");
       setRemoving(null);
       void refetch();
-    } catch {
-      toast.error("No se pudo eliminar");
+    } catch (e: any) {
+      const msg = e?.response?.data?.error?.message ?? "No se pudo eliminar";
+      toast.error(msg);
     }
   };
 

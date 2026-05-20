@@ -40,9 +40,8 @@ export default function NewOrderPage() {
     setSubmitting(true);
     try {
       await orderService.create({
-        customerId: "u-001",
-        customerName: "María Pérez",
-        customerPhone: "+57 300 555 1234",
+        customerId: "",
+        customerName: "",
         items: items.map((i) => ({
           productId: i.productId,
           productName: i.name,
@@ -55,8 +54,12 @@ export default function NewOrderPage() {
       toast.success("Tu pedido fue registrado correctamente");
       clear();
       router.push("/my-orders");
-    } catch (e) {
-      toast.error("No se pudo registrar el pedido");
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.error?.message ??
+        e?.message ??
+        "No se pudo registrar el pedido";
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

@@ -8,6 +8,8 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import { loginSchema, LoginInput } from "@/lib/validators";
+import { api, USE_MOCK } from "@/lib/api";
+import { toast } from "@/hooks/useToast";
 import { useAuthStore } from "@/store/auth.store";
 import { Role, User } from "@/types";
 
@@ -48,15 +50,47 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: LoginInput) => {
-    // TODO: integrar con backend real
-    // const res = await api.post("/auth/login", data)
-    await new Promise((r) => setTimeout(r, 400));
+    let user;
+    let token;
 
-    const { user, token } = buildMockUser(data.email);
+    try {
+      if (USE_MOCK) {
+        await new Promise((r) => setTimeout(r, 400));
+        const mock = buildMockUser(data.email);
+        user = mock.user;
+        token = mock.token;
+      } else {
+        const res = await api.post<{
+          data: {
+            accessToken: string;
+            user: { id: string; email: string; role: "ADMIN" | "CLIENT" };
+          };
+        }>("/auth/login", data);
+        const { accessToken, user: apiUser } = res.data.data;
+        token = accessToken;
+        user = {
+          id: apiUser.id,
+          fullName: apiUser.email,
+          email: apiUser.email,
+          phone: "",
+          role: apiUser.role === "ADMIN" ? ("administrador" as const) : ("cliente" as const),
+          createdAt: new Date().toISOString(),
+        };
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error?.message ??
+        err?.response?.data?.message ??
+        "Correo o contraseña incorrectos";
+      toast.error(msg);
+      return;
+    }
+
     login(user, token);
     if (typeof window !== "undefined") {
       localStorage.setItem("hh_token", token);
     }
+    toast.success(`¡Bienvenido, ${user.fullName}!`);
 
     router.push(user.role === "administrador" ? "/admin/dashboard" : "/catalog");
   };
@@ -101,23 +135,15 @@ export default function LoginPage() {
           />
         </div>
 
-        <div className="flex justify-between items-center text-[13px] text-text-muted pt-1">
+        <div className="flex items-center text-[13px] text-text-muted pt-1">
           <label className="flex gap-2 items-center cursor-pointer">
             <input type="checkbox" className="accent-primary-500" /> Recordarme
           </label>
-          <Link href="#" className="text-primary-700 font-medium hover:underline">
-            ¿Olvidaste tu contraseña?
-          </Link>
         </div>
 
         <Button type="submit" fullWidth disabled={isSubmitting} className="mt-2">
           {isSubmitting ? "Iniciando..." : "Iniciar sesión"}
         </Button>
-
-        <p className="text-[11px] text-text-soft text-center pt-1">
-          Tip demo: usa <b>admin@…</b> para entrar como administrador, cualquier
-          otro correo entra como cliente.
-        </p>
       </form>
 
       <div className="mt-5 text-center text-[13px] text-text-muted">

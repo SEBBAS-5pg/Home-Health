@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Notification } from "@/types";
 import { notificationService } from "@/services";
 import { useAsync } from "@/hooks/useAsync";
+import { api, USE_MOCK } from "@/lib/api";
 import { toast } from "@/hooks/useToast";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -42,8 +43,22 @@ function timeAgo(iso: string): string {
   return `hace ${d} día${d === 1 ? "" : "s"}`;
 }
 
+// Al montar, le pedimos al backend que sincronice las notificaciones de
+// stock bajo y vencimientos antes de listar. Así el centro siempre muestra
+// la realidad actual del catálogo sin depender de un cron job aparte.
+async function syncAndList() {
+  if (!USE_MOCK) {
+    try {
+      await api.post("/notifications/sync");
+    } catch {
+      // Si falla la sync, seguimos mostrando lo que haya.
+    }
+  }
+  return notificationService.list();
+}
+
 export default function AdminNotificationsPage() {
-  const { data: notifications, refetch } = useAsync(() => notificationService.list(), []);
+  const { data: notifications, refetch } = useAsync(syncAndList, []);
   const [readFilter, setReadFilter] = useState<ReadFilter>("all");
   const [kindFilter, setKindFilter] = useState<NotificationKind | "all">("all");
 

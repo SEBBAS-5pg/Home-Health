@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: home-health-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hh_user
+      POSTGRES_PASSWORD: hh_pass
+      POSTGRES_DB: home_health
+    ports:
+      - '5432:5432'
+    volumes:
+      - hh_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hh_user -d home_health']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: home-health-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://hh_user:hh_pass@db:5432/home_health?schema=public
+      JWT_ACCESS_SECRET: dev-access-secret
+      JWT_REFRESH_SECRET: dev-refresh-secret
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - '4000:4000'
+
+volumes:
+  hh_pgdata:

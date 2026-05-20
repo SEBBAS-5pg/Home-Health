@@ -197,12 +197,35 @@ export default function AdminReportsPage() {
     toast.success(`Reporte "${strategy.label}" generado`);
   };
 
-  const handleExport = (format: "pdf" | "excel") => {
+  const handleExport = async (format: "pdf" | "xlsx" | "csv") => {
     if (!generated || rows.length === 0) {
       toast.error("Primero genera un reporte con resultados");
       return;
     }
-    toast.success(`Exportando reporte en ${format.toUpperCase()}...`);
+    try {
+      const params = new URLSearchParams({ format });
+      if (from) params.append("from", from);
+      if (to) params.append("to", to);
+      // Llamada al backend pidiendo el archivo binario.
+      const { api } = await import("@/lib/api");
+      const res = await api.get(`/reports/${type}/export?${params.toString()}`, {
+        responseType: "blob",
+      });
+      // Forzar descarga en el navegador.
+      const blob = new Blob([res.data]);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${type}_${new Date().toISOString().slice(0, 10)}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success(`Reporte descargado en ${format.toUpperCase()}`);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error?.message ?? "No se pudo exportar el reporte";
+      toast.error(msg);
+    }
   };
 
   return (
@@ -259,12 +282,15 @@ export default function AdminReportsPage() {
               <div className="text-xs uppercase font-semibold text-text-muted mb-2">
                 Exportar
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Button variant="secondary" onClick={() => handleExport("pdf")}>
                   📄 PDF
                 </Button>
-                <Button variant="secondary" onClick={() => handleExport("excel")}>
+                <Button variant="secondary" onClick={() => handleExport("xlsx")}>
                   📈 Excel
+                </Button>
+                <Button variant="secondary" onClick={() => handleExport("csv")}>
+                  📋 CSV
                 </Button>
               </div>
             </div>

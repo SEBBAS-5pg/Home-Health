@@ -54,8 +54,12 @@ export default function AdminOrdersPage() {
       await orderService.changeStatus(selected.id, next);
       toast.success(`Estado actualizado a "${next}"`);
       void refetch();
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.error?.message ??
+        (e as Error)?.message ??
+        "No se pudo cambiar el estado";
+      toast.error(msg);
     }
   };
 
@@ -66,8 +70,12 @@ export default function AdminOrdersPage() {
       toast.success("Pedido rechazado");
       setConfirmReject(false);
       void refetch();
-    } catch (e) {
-      toast.error((e as Error).message);
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.error?.message ??
+        (e as Error)?.message ??
+        "No se pudo rechazar el pedido";
+      toast.error(msg);
     }
   };
 

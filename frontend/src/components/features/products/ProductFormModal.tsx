@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Product, ProductCategory } from "@/types";
+import { api } from "@/lib/api";
 import { Modal } from "@/components/ui/Modal";
 import { Input, Label } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -14,14 +15,10 @@ interface ProductFormModalProps {
   onSave: (data: Omit<Product, "id">, id?: string) => void | Promise<void>;
 }
 
-const CATEGORIES: ProductCategory[] = [
-  "Analgesicos",
-  "Antibioticos",
-  "Vitaminas",
-  "Cuidado personal",
-  "Primeros auxilios",
-  "Equipos",
-];
+interface ApiCategory {
+  id: string;
+  name: string;
+}
 
 const EMPTY: Omit<Product, "id"> = {
   name: "",
@@ -37,11 +34,29 @@ const EMPTY: Omit<Product, "id"> = {
 export function ProductFormModal({ open, product, onClose, onSave }: ProductFormModalProps) {
   const [form, setForm] = useState<Omit<Product, "id">>(EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [categories, setCategories] = useState<ApiCategory[]>([]);
+
+  // Carga categorías reales con UUID desde el backend.
+  useEffect(() => {
+    if (!open) return;
+    api
+      .get<{ data: ApiCategory[] }>("/categories")
+      .then((r) => {
+        const cats = r.data.data ?? [];
+        setCategories(cats);
+        if (!product && cats[0]) {
+          setForm((f) => ({ ...f, category: cats[0].id as any }));
+        }
+      })
+      .catch(() => setCategories([]));
+  }, [open, product]);
 
   useEffect(() => {
     if (product) {
       const { id, ...rest } = product;
-      setForm(rest);
+      // Si el producto tiene categoryId real (viene del backend), úsalo.
+      // Si no, fallback al nombre (compat con modo mock).
+      setForm({ ...rest, category: (product.categoryId ?? rest.category) as any });
     } else {
       setForm(EMPTY);
     }
@@ -55,8 +70,8 @@ export function ProductFormModal({ open, product, onClose, onSave }: ProductForm
   const handleSubmit = async () => {
     const newErrors: Record<string, string> = {};
     if (!form.name.trim()) newErrors.name = "El nombre es obligatorio";
-    if (!form.description.trim()) newErrors.description = "La descripción es obligatoria";
     if (form.price <= 0) newErrors.price = "El precio debe ser mayor a 0";
+    if (form.price < 0) newErrors.price = "El precio no puede ser negativo";
     if (form.stock < 0) newErrors.stock = "El stock no puede ser negativo";
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -96,8 +111,8 @@ export function ProductFormModal({ open, product, onClose, onSave }: ProductForm
               value={form.category}
               onChange={(e) => handleChange("category", e.target.value as ProductCategory)}
             >
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </Select>
           </div>
@@ -119,8 +134,14 @@ export function ProductFormModal({ open, product, onClose, onSave }: ProductForm
             <Input
               id="price"
               type="number"
-              value={form.price}
-              onChange={(e) => handleChange("price", Number(e.target.value))}
+              min={0}
+              step="any"
+              placeholder="Ej. 12500"
+              value={form.price === 0 ? "" : form.price}
+              onChange={(e) => {
+                const v = Math.max(0, Number(e.target.value));
+                handleChange("price", Number.isFinite(v) ? v : 0);
+              }}
               error={errors.price}
             />
           </div>
@@ -129,8 +150,13 @@ export function ProductFormModal({ open, product, onClose, onSave }: ProductForm
             <Input
               id="stock"
               type="number"
-              value={form.stock}
-              onChange={(e) => handleChange("stock", Number(e.target.value))}
+              min={0}
+              placeholder="Ej. 100"
+              value={form.stock === 0 ? "" : form.stock}
+              onChange={(e) => {
+                const v = Math.max(0, Number(e.target.value));
+                handleChange("stock", Number.isFinite(v) ? v : 0);
+              }}
               error={errors.stock}
             />
           </div>

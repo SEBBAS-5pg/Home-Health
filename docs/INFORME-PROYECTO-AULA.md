@@ -132,8 +132,7 @@ Los RF se redactan siguiendo el formato sugerido por la **IEEE 830-1998**, agrup
 | RF-14  | El sistema debe generar notificaciones automáticas por stock bajo, productos vencidos y nuevos pedidos.                   | HU14            | Alta      |
 | RF-15  | El sistema debe permitir al admin editar el perfil de cualquier usuario del sistema.                                      | HU15            | Media     |
 | RF-16  | El sistema debe permitir al cliente cancelar un pedido cuyo estado sea "Pendiente".                                       | HU16            | Media     |
-| RF-17  | El sistema debe ofrecer recuperación de contraseña mediante correo con enlace temporal de un solo uso.                    | HU17            | Media     |
-| RF-18  | El sistema debe registrar en AuditLog cada acción crítica con `user_id`, `action`, `entity`, `before_data`, `after_data`. | Transversal     | Alta      |
+| RF-17  | El sistema debe registrar en AuditLog cada acción crítica con `user_id`, `action`, `entity`, `before_data`, `after_data`. | Transversal     | Alta      |
 
 ---
 
@@ -201,7 +200,7 @@ Los RNF se organizan según las **ocho características de calidad de la ISO/IEC
 | ID      | Requisito                                                                            | Métrica                                                                                |
 | :------ | :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
 | RNF-21  | Despliegue contenedorizado reproducible.                                             | `docker-compose up` levanta el stack completo en local en ≤ 60 s.                       |
-| RNF-22  | Independencia del proveedor cloud para el código aplicativo.                         | El backend no usa servicios AWS-específicos en el código (solo SDK de S3, SES, CW).    |
+| RNF-22  | Independencia del proveedor cloud para el código aplicativo.                         | El backend no usa servicios AWS-específicos en el código (solo SDK de S3 y CW).        |
 
 ---
 
@@ -256,7 +255,7 @@ El proyecto se ejecuta en **6 semanas** divididas en **un Sprint 0** y **3 Sprin
 | **H1** | 05 may – 11 may     | Sprint 1 — Documentación formal (Informe, ADR, MER, HU, Storymaps). Walking skeleton parcial.                     | 🔄 En curso |
 | **H2** | 12 may – 18 may     | Sprint 1 cont. — Walking skeleton completo (HU01, HU02, HU07, HU06, HU09, HU11, HU10).                            | ⏳ Próximo  |
 | **H3** | 19 may – 25 may     | Sprint 2 — Enrichment crítico (HU03, HU04, HU05, HU08, HU12, HU14, HU16). **Sustentación AWS (Hito 2 oficial)**.   | ⏳ Próximo  |
-| **H4** | 26 may – 08 jun     | Sprint 3 — Soporte y reportes (HU13, HU15, HU17, HU18, HU22 observabilidad).                                       | ⏳ Próximo  |
+| **H4** | 26 may – 08 jun     | Sprint 3 — Soporte y reportes (HU13, HU15, HU18, HU22 observabilidad).                                              | ⏳ Próximo  |
 | **H5** | 09 jun – 15 jun     | Estabilización, performance, accesibilidad, video de demo. Entrega final.                                          | ⏳ Próximo  |
 
 ### 8.1 Diagrama de cronograma (Gantt simplificado)

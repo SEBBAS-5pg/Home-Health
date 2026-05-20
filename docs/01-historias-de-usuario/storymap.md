@@ -77,12 +77,12 @@ Cada actividad del backbone se descompone en tareas. Cada tarea está asociada a
 | Actividad           | Tareas (con HU asociada)                                                                                                                                                 |
 | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Crear cuenta**    | Registro con validación de correo, teléfono y contraseña fuerte → **HU01**                                                                                               |
-| **Iniciar sesión**  | Login con JWT → **HU02** · Recuperación de contraseña por correo → **HU17** · Cierre de sesión → **HU03**                                                                |
+| **Iniciar sesión**  | Login con JWT → **HU02** · Cierre de sesión → **HU03**                                                                                                                   |
 | **Explorar catálogo** | Listado completo con stock > 0 → **HU06** · Filtro por categoría → **HU06.2** · Búsqueda por nombre con debounce → **HU06.3** · Detalle de producto → **HU06.4**         |
 | **Armar pedido**    | Agregar al carrito · Modificar cantidades · Persistir carrito en local → **HU09**                                                                                        |
 | **Confirmar pedido**| Ingresar dirección · Confirmar · Recibir número de pedido → **HU09**                                                                                                     |
 | **Seguir pedido**   | Ver historial → **HU10** · Ver detalle con timeline · Cancelar pedido en estado Pendiente → **HU16**                                                                     |
-| **Gestionar perfil**| Ver datos · Editar nombre y teléfono → **HU04** · Cambiar contraseña → **HU17.2** · Eliminar cuenta → **HU16.2**                                                          |
+| **Gestionar perfil**| Ver datos · Editar nombre y teléfono → **HU04** · Eliminar cuenta → **HU16.2**                                                                                            |
 
 ### 5.2 Administrador
 
@@ -135,7 +135,6 @@ El enrichment son las HU que **añaden valor** sobre el walking skeleton pero no
 | **HU14** | Centro de notificaciones                       | Reduce carga cognitiva del admin.                                            |
 | **HU15** | Admin edita perfil de usuarios                 | Soporte y corrección de datos.                                               |
 | **HU16** | Cancelar pedido (cliente)                      | Reduce fricción y carga al admin.                                            |
-| **HU17** | Recuperación de contraseña                     | Reduce abandono por bloqueo de cuenta.                                       |
 | **HU18** | Exportar reportes en PDF / Excel / CSV         | Integración con flujos contables y administrativos.                          |
 
 ---
@@ -149,11 +148,11 @@ El proyecto se divide en cuatro sprints de dos semanas. Cada sprint entrega un r
 | **0 — Spike** | 28 abr — 04 may | Setup técnico, definición de arquitectura, MER, ADRs base                              | HU19 (spike auth JWT, 3), HU20 (spike upload imágenes, 3), HU21 (spike CI/CD, 2)                          |    8     |
 | **1 — Walking Skeleton** | 05 may — 18 may | Recorrer la arquitectura end-to-end con valor mínimo                       | HU01 (5), HU02 (5), HU07 (5), HU06 (3), HU09 (8), HU11 (8), HU10 (3)                                       |   37     |
 | **2 — Enrichment crítico** | 19 may — 01 jun | Cerrar gaps críticos del dominio farmacéutico                            | HU03 (2), HU04 (3), HU05 (3), HU08 (5), HU12 (5), HU14 (5), HU16 (3)                                       |   26     |
-| **3 — Soporte y reportes** | 02 jun — 15 jun | Reportes, exportaciones, recuperación de contraseña                       | HU13 (5), HU17 (5), HU18 (5), HU15 (3), HU22 (spike observabilidad, 3)                                     |   21     |
+| **3 — Soporte y reportes** | 02 jun — 15 jun | Reportes, exportaciones y observabilidad                                  | HU13 (5), HU18 (5), HU15 (3), HU22 (spike observabilidad, 3)                                                |   16     |
 
 **Velocidad estimada del equipo**: 24-28 SP/sprint para 3 personas (8-10 SP por persona).
 
-**Total proyecto**: 92 story points.
+**Total proyecto**: 87 story points.
 
 ---
 
@@ -177,7 +176,6 @@ El proyecto se divide en cuatro sprints de dos semanas. Cada sprint entrega un r
 | HU05     | **Could**        | Visibilidad admin, no operación.                                                                    |
 | HU13     | **Could**        | Reportes son consolidación, no operación diaria.                                                    |
 | HU15     | **Could**        | Edición de perfiles ajenos es excepcional.                                                          |
-| HU17     | **Could**        | Recuperación de contraseña puede manejarse por reset manual del admin en el MVP.                    |
 | HU18     | **Could**        | Exportaciones en múltiples formatos pueden empezar solo con CSV.                                    |
 | —        | **Won't (esta vez)** | Pagos en línea, chat con admin, app móvil nativa, geolocalización del repartidor, multimoneda. |
 

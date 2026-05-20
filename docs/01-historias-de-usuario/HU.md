@@ -7,7 +7,8 @@
 | 1.0     | 01/05/2026 | Levantamiento inicial de necesidades de usuarios y definición de historias de usuario.                                                          | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 | 1.1     | 09/05/2026 | Refinamiento de historias de usuario, criterios de aceptación y reorganización de módulos funcionales.                                          | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 | 1.2     | 10/05/2026 | Ajuste de reglas de negocio, refinamiento del flujo de pedidos y alineación de historias de usuario con el modelo de dominio y la arquitectura. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
-| 2.0     | 12/05/2026 | Adición de HU15-HU18 (admin edita perfil, cancelar pedido, recuperación contraseña, exportar reportes) y HU19-HU22 técnicas/spike. Story points en escala Fibonacci, asignación a sprint y matriz de trazabilidad HU↔Módulo↔Endpoint↔MER. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 2.0     | 12/05/2026 | Adición de HU15, HU16 y HU18 (admin edita perfil, cancelar pedido, exportar reportes) y HU19-HU22 técnicas/spike. Story points en escala Fibonacci, asignación a sprint y matriz de trazabilidad HU↔Módulo↔Endpoint↔MER. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 2.1     | 20/05/2026 | Se retira del alcance del MVP la recuperación de contraseña por correo (HU17) por dependencia de un servicio de correo transaccional externo. La recuperación de acceso se gestiona manualmente por el administrador. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 
 ---
 
@@ -56,7 +57,6 @@ Cada HU incluye:
 | **HU14** | Administrador           | Recibir notificaciones sobre stock bajo, vencimientos y nuevos pedidos                                          | Estar informado sin revisar cada módulo.                                          | 5  | 2      | Should    | Alta      |
 | **HU15** | Administrador           | Editar el perfil de cualquier usuario (nombre, teléfono, rol, estado activo/inactivo)                          | Soporte y corrección de datos por el área administrativa.                         | 3  | 3      | Could     | Media     |
 | **HU16** | Cliente                 | Cancelar un pedido propio en estado "Pendiente"                                                                 | Reducir fricción y carga al admin cuando me arrepiento del pedido.                | 3  | 2      | Should    | Media     |
-| **HU17** | Cliente                 | Recuperar mi contraseña mediante enlace temporal por correo                                                     | Recuperar acceso sin depender del admin.                                          | 5  | 3      | Could     | Media     |
 | **HU18** | Administrador           | Exportar reportes en formato PDF, Excel (.xlsx) y CSV                                                           | Integrar reportes con flujos contables externos.                                  | 5  | 3      | Could     | Media     |
 
 ### 2.2 Historias técnicas y spikes (HU19–HU22)
@@ -70,7 +70,7 @@ Las **HU técnicas** y **spikes** son aquellas que no aportan valor directo al u
 | **HU21** | Técnica| Equipo dev        | Configurar pipeline CI/CD en GitHub Actions con lint + tests + build + push a Lightsail Container Registry | Habilitar despliegues automatizados desde el primer commit.            | 2  | 0      | Alta      |
 | **HU22** | Técnica| Equipo dev        | Implementar logging estructurado con Pino y health checks (`/health`, `/health/ready`)                     | Tener observabilidad mínima antes de la sustentación AWS.              | 3  | 3      | Media     |
 
-**Total story points del proyecto**: **92 SP** distribuidos en Sprint 0 (8 SP) + Sprint 1 (37 SP) + Sprint 2 (26 SP) + Sprint 3 (21 SP).
+**Total story points del proyecto**: **87 SP** distribuidos en Sprint 0 (8 SP) + Sprint 1 (37 SP) + Sprint 2 (26 SP) + Sprint 3 (16 SP).
 
 ---
 
@@ -565,40 +565,6 @@ Escenario: Cliente intenta cancelar pedido ajeno
 
 ---
 
-### HU17 — Recuperación de contraseña
-
-```gherkin
-Escenario: Solicitud de recuperación con correo válido
-  Dado que el usuario está en /forgot-password
-  Cuando ingresa un correo electrónico registrado en el sistema
-  Y hace clic en "Enviar enlace"
-  Entonces el sistema genera un token de recuperación único con vigencia de 30 minutos
-  Y envía un correo mediante Amazon SES con el enlace https://home-health.app/reset-password?token=...
-  Y muestra el mensaje "Si el correo está registrado, recibirás un enlace en pocos minutos"
-
-Escenario: Solicitud con correo no registrado
-  Dado que el usuario ingresa un correo no registrado
-  Entonces el sistema NO envía ningún correo
-  Y muestra el mismo mensaje genérico para no revelar qué correos existen
-  Y no informa al usuario que el correo no existe
-
-Escenario: Restablecimiento exitoso con token válido
-  Dado que el usuario accede a /reset-password?token=... desde el correo
-  Y el token es válido y no ha expirado
-  Cuando ingresa nueva contraseña y confirmación
-  Y hace clic en "Restablecer contraseña"
-  Entonces el sistema actualiza la contraseña (hasheada con bcrypt)
-  Y invalida el token
-  Y redirige a /login con el mensaje "Contraseña actualizada"
-
-Escenario: Token expirado o usado
-  Dado que el usuario accede con un token expirado o ya consumido
-  Entonces el sistema muestra el mensaje "Este enlace ha expirado o ya fue usado"
-  Y ofrece el botón "Solicitar nuevo enlace"
-```
-
----
-
 ### HU18 — Exportación de reportes en múltiples formatos
 
 ```gherkin
@@ -654,7 +620,6 @@ Esta matriz garantiza la **trazabilidad bidireccional** entre las Historias de U
 | **HU14** | Notifications   | `GET /notifications`, `PATCH /notifications/:id/read`        | `Notification`, `User`                   | RN04, RN08        |
 | **HU15** | Users           | `PATCH /users/:id`                                           | `User`, `AuditLog`                       | RN04              |
 | **HU16** | Orders          | `PATCH /orders/:id/cancel`                                   | `Order`, `OrderStatusHistory`, `AuditLog`, `Notification` | RN01, RN04 |
-| **HU17** | Auth            | `POST /auth/forgot-password`, `POST /auth/reset-password`    | `User`, `PasswordResetToken`, `AuditLog` | RN05              |
 | **HU18** | Reports         | `GET /reports/:type/export?format=pdf|xlsx|csv`              | `Product`, `Order`, `OrderItem`          | RN04              |
 | **HU19** | Spike Auth      | (spike — no produce endpoints permanentes)                   | —                                        | —                 |
 | **HU20** | Spike S3        | `POST /products/:id/image` (presigned)                       | `Product`                                | —                 |
@@ -677,7 +642,6 @@ Esta matriz garantiza la **trazabilidad bidireccional** entre las Historias de U
 | RN08  | Las notificaciones del MVP serán visibles únicamente para administradores.                                     |
 | RN09  | Toda acción crítica (CRUD de Product, cambio de estado de Order, edición de User, ajuste de stock, login admin) debe quedar registrada en `AuditLog`. |
 | RN10  | El cliente solo puede cancelar pedidos cuyo estado sea "Pendiente" y cuyo `customer_id` coincida con su `user_id`. |
-| RN11  | Los tokens de recuperación de contraseña tienen vigencia máxima de 30 minutos y son de un solo uso.            |
 
 ---
 

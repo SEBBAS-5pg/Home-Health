@@ -97,7 +97,7 @@ export default function AdminInventoryPage() {
       <PageHeader
         title="Control de inventario"
         subtitle="Registra entradas y salidas de stock"
-        actions={<Button variant="secondary" size="sm">⬇ Exportar historial</Button>}
+        actions={null}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-5">

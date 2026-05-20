@@ -25,6 +25,7 @@ El objetivo del MER es garantizar:
 | 2.0     | 09/05/2026  | Refinamiento del MER alineado con historias de usuario, servicios REST y MVP del proyecto.                                                                                                           | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 | 2.1     | 10/05/2026  | Incorporación de la entidad `Category`, ajustes de relaciones, definición de consideraciones técnicas y alineación arquitectónica con el modelo de dominio.                                          | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 | 3.0     | 12/05/2026  | Incorporación de entidades `AuditLog`, `OrderStatusHistory`, `PasswordResetToken`. FK explícitas en `Notification` hacia `Order` y `Product`. Documentación formal de constraints CHECK, índices, normalización (3FN justificada), control de concurrencia con bloqueo pesimista y trigger nightly de verificación de stock. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 3.1     | 20/05/2026  | Retiro de la entidad `PasswordResetToken` y la HU17 (recuperación de contraseña por correo) del alcance del MVP. La recuperación de acceso queda a cargo del administrador. Se eliminan también el constraint, el índice y la relación asociados.                                                                       | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 
 ---
 
@@ -210,18 +211,7 @@ Entidad que materializa el historial de cambios de estado de un pedido. Resuelve
 
 ---
 
-## 10. PasswordResetToken
-
-Soporta la HU17 (recuperación de contraseña). Tokens de un solo uso con expiración corta.
-
-| Campo       | Tipo                                              | Nulabilidad | Descripción                                          |
-| :---------- | :------------------------------------------------ | :---------- | :--------------------------------------------------- |
-| id          | UUID                                              | NOT NULL    | Identificador único.                                 |
-| user_id     | UUID (FK → User.id ON DELETE CASCADE)              | NOT NULL    | Usuario asociado.                                    |
-| token_hash  | VARCHAR(255)                                      | NOT NULL    | Hash SHA-256 del token (no se guarda el plano).      |
-| expires_at  | TIMESTAMP                                         | NOT NULL    | Fecha y hora de expiración (≤ 30 min desde creación). |
-| used_at     | TIMESTAMP                                         | NULLABLE    | Fecha y hora en que se consumió (NULL si no usado).  |
-| created_at  | TIMESTAMP                                         | NOT NULL    | Fecha y hora de generación.                          |
+> **Nota**: la entidad `PasswordResetToken` y la HU17 (recuperación de contraseña por correo) fueron retiradas del alcance del MVP en la versión 3.1 del MER por dependencia de un servicio de correo transaccional externo. La recuperación de acceso se gestiona manualmente por el administrador.
 
 ---
 
@@ -232,7 +222,6 @@ Soporta la HU17 (recuperación de contraseña). Tokens de un solo uso con expira
 | User → Order                          | 1:N          | RESTRICT                  |
 | User → Notification                   | 1:N          | CASCADE                   |
 | User → AuditLog                       | 1:N          | SET NULL                  |
-| User → PasswordResetToken             | 1:N          | CASCADE                   |
 | User → OrderStatusHistory (changed_by)| 1:N          | RESTRICT                  |
 | Order → OrderItem                     | 1:N          | CASCADE                   |
 | Order → OrderStatusHistory            | 1:N          | CASCADE                   |
@@ -385,7 +374,6 @@ Los siguientes constraints se aplican como **defensa en profundidad** a nivel de
 | `InventoryMovement` | `CHECK (quantity > 0)`                                          | RN07                      |
 | `InventoryMovement` | `CHECK (resulting_stock >= 0)`                                  | RN02                      |
 | `Notification`      | `CHECK (...)` ver definición arriba                             | —                         |
-| `PasswordResetToken`| `CHECK (expires_at > created_at)`                               | RN11                      |
 | `User`              | `CHECK (email ~* '^[^@]+@[^@]+\.[^@]+$')`                       | —                         |
 
 ---
@@ -408,7 +396,6 @@ Los índices se documentan formalmente porque el profesor identificó su ausenci
 | `idx_notification_user_read_date`                     | `Notification`       | BTREE   | Listado de notificaciones no leídas del admin (HU14).                      |
 | `idx_audit_user_date`                                 | `AuditLog`           | BTREE   | Auditoría filtrada por usuario en investigaciones.                         |
 | `idx_audit_entity_id`                                 | `AuditLog`           | BTREE   | Auditoría filtrada por recurso (ej. "qué pasó con el pedido X").           |
-| `idx_passwordreset_token_hash` (único)                | `PasswordResetToken` | UNIQUE  | Búsqueda por hash al validar token (HU17).                                  |
 | `idx_status_history_order`                            | `OrderStatusHistory` | BTREE   | Reconstrucción del timeline de un pedido (HU10, HU11).                     |
 
 ---
@@ -510,7 +497,6 @@ El **Decreto 2200 de 2005** del Ministerio de Salud y Protección Social de Colo
 | `User.password`              | Hasheada con bcrypt cost ≥ 12. Nunca se devuelve en respuestas API.                          |
 | `User.email`, `User.phone`   | Solo accesibles a su propietario o al administrador con permisos explícitos.                  |
 | `User.address` (en pedido)   | Almacenada por pedido (`Order.delivery_address`) no en perfil, para minimizar exposición.    |
-| `PasswordResetToken.token_hash` | Se almacena el hash SHA-256, nunca el token plano.                                        |
 | `AuditLog.before/after_data` | Se ofuscan campos sensibles (contraseñas, tokens) antes de serializar a JSONB.                |
 
 ---

@@ -39,7 +39,6 @@ Mostrar Home-Health como una "caja negra" dentro de su ecosistema: qué tipo de 
 | **Cliente**                 | Persona         | Usuario final que adquiere medicamentos a domicilio.                                                     |
 | **Administrador**           | Persona         | Personal de la farmacia que opera catálogo, inventario, pedidos, vencimientos y reportes.                |
 | **Home-Health**             | Sistema (foco)  | Plataforma web de gestión farmacéutica con cliente público y panel administrativo.                       |
-| **Amazon SES**              | Sistema externo | Servicio de correo transaccional para envío de notificaciones (registro, recuperación de contraseña).    |
 | **Amazon CloudWatch Logs**  | Sistema externo | Recolección de logs estructurados y métricas básicas del backend.                                        |
 
 ### 2.3 Relaciones principales
@@ -48,7 +47,6 @@ Mostrar Home-Health como una "caja negra" dentro de su ecosistema: qué tipo de 
 | :------------ | :---------------- | :------------------------------------------------ | :--------------------- |
 | Cliente       | Home-Health       | Explora catálogo, realiza y consulta pedidos      | HTTPS                  |
 | Administrador | Home-Health       | Gestiona catálogo, inventario y pedidos           | HTTPS                  |
-| Home-Health   | Amazon SES        | Envía correos de registro y notificaciones        | API HTTPS              |
 | Home-Health   | CloudWatch Logs   | Publica logs estructurados de cada operación      | AWS SDK                |
 
 ### 2.4 Diagrama C1
@@ -58,12 +56,10 @@ flowchart TB
     Cliente(("👤 Cliente"))
     Admin(("👤 Administrador"))
     HH["🏥 Home-Health<br/>Sistema de gestión farmacéutica<br/>con plataforma web cliente y admin"]
-    SES["📧 Amazon SES<br/>Correo transaccional"]
     CW["📊 CloudWatch Logs<br/>Observabilidad"]
 
     Cliente -->|"Explora catálogo,<br/>realiza pedidos<br/>(HTTPS)"| HH
     Admin -->|"Opera catálogo,<br/>inventario, pedidos<br/>(HTTPS)"| HH
-    HH -->|"Envía correos<br/>transaccionales"| SES
     HH -->|"Publica logs<br/>estructurados"| CW
 
     classDef person fill:#14B8A6,stroke:#0F766E,color:#fff
@@ -71,7 +67,7 @@ flowchart TB
     classDef external fill:#94A3B8,stroke:#475569,color:#fff
     class Cliente,Admin person
     class HH system
-    class SES,CW external
+    class CW external
 ```
 
 📎 **Diagrama de respaldo (draw.io)**: ![C4 Nivel 1 - Contexto](../imagenes/C4_Nivel1_Contexto.drawio.png)
@@ -103,7 +99,6 @@ Hacer zoom dentro de Home-Health para mostrar las **piezas tecnológicas despleg
 | Web App        | API Backend            | HTTPS + JSON            | API REST con Bearer JWT en cada request                           |
 | API Backend    | Base de Datos          | TCP / SSL (puerto 5432) | Cliente Prisma con pool de conexiones                             |
 | API Backend    | Almacenamiento S3      | HTTPS (AWS SDK v3)      | Upload de imágenes y generación de presigned URLs                 |
-| API Backend    | Amazon SES             | HTTPS (AWS SDK v3)      | Envío de correos                                                  |
 | API Backend    | CloudWatch Logs        | HTTPS (AWS SDK v3)      | Logs estructurados en JSON                                        |
 | Web App        | CloudFront             | HTTPS                   | Imágenes optimizadas vía CDN                                      |
 | CloudFront     | S3                     | HTTPS                   | Origin para imágenes                                              |
@@ -127,7 +122,6 @@ flowchart TB
     subgraph AWS["Servicios AWS"]
         S3["🪣 S3<br/>Imágenes productos"]
         CF["🌐 CloudFront<br/>CDN"]
-        SES["📧 SES<br/>Correo transaccional"]
         CW["📊 CloudWatch Logs"]
     end
 
@@ -138,7 +132,6 @@ flowchart TB
     CF --> S3
     API -->|"Prisma<br/>TCP/SSL"| DB
     API -->|"AWS SDK"| S3
-    API -->|"AWS SDK"| SES
     API -->|"AWS SDK"| CW
     Cron -.->|"in-process"| API
 
@@ -149,7 +142,7 @@ flowchart TB
     class Cliente,Admin person
     class Web,API,Cron container
     class DB db
-    class S3,CF,SES,CW aws
+    class S3,CF,CW aws
 ```
 
 📎 **Diagrama de respaldo (draw.io)**: ![C4 Nivel 2 - Contenedores](../imagenes/C4_Nivel2_Contenedores.drawio.png)
@@ -168,7 +161,7 @@ El backend está organizado en **8 módulos funcionales** alineados con los serv
 
 | # | Módulo          | Endpoints principales                              | Responsabilidad                                              |
 | :- | :-------------- | :------------------------------------------------- | :----------------------------------------------------------- |
-| 1 | **Auth**        | `POST /auth/register`, `/login`, `/logout`, `/forgot-password` | Registro, login, JWT, recuperación de contraseña |
+| 1 | **Auth**        | `POST /auth/register`, `/login`, `/logout`                      | Registro, login y cierre de sesión con JWT |
 | 2 | **Users**       | `GET/PATCH /users`, `/users/me`                    | Gestión de usuarios y perfiles                                |
 | 3 | **Products**    | `GET/POST/PATCH/DELETE /products`                  | Catálogo de medicamentos                                      |
 | 4 | **Inventory**   | `POST /inventory/movements`, `GET /inventory`      | Movimientos de stock (entradas y salidas)                     |

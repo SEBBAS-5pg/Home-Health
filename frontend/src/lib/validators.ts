@@ -9,11 +9,12 @@ export const registerSchema = z
       .string()
       .min(7, "Teléfono no válido")
       .regex(/^[\d\s+()-]+$/, "Solo números y símbolos válidos"),
-    password: z.string().min(8, "La contraseña debe tener mínimo 8 caracteres"),
+    password: z
+      .string()
+      .min(8, "Mínimo 8 caracteres")
+      .regex(/[A-Za-z]/, "Debe incluir al menos una letra")
+      .regex(/\d/, "Debe incluir al menos un número"),
     confirmPassword: z.string(),
-    acceptTerms: z.literal(true, {
-      errorMap: () => ({ message: "Debes aceptar los términos y condiciones" }),
-    }),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: "Las contraseñas no coinciden",

@@ -25,7 +25,8 @@ export type ProductCategory =
 export interface Product {
   id: string;
   name: string;
-  category: ProductCategory;
+  category: ProductCategory;     // nombre legible (UI)
+  categoryId?: string;            // UUID real (backend)
   description: string;
   price: number;       // COP
   stock: number;

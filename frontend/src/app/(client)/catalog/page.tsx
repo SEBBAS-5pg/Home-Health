@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Product, ProductCategory } from "@/types";
+import { useEffect, useMemo, useState } from "react";
+import { Product } from "@/types";
 import { productService } from "@/services";
+import { api } from "@/lib/api";
 import { useAsync } from "@/hooks/useAsync";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCartStore } from "@/store/cart.store";
@@ -13,30 +14,25 @@ import { Chip } from "@/components/ui/Chip";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ProductCard } from "@/components/features/products/ProductCard";
 
-const CATEGORIES: ("all" | ProductCategory)[] = [
-  "all",
-  "Analgesicos",
-  "Antibioticos",
-  "Vitaminas",
-  "Cuidado personal",
-  "Primeros auxilios",
-  "Equipos",
-];
-
-const CATEGORY_LABEL: Record<string, string> = {
-  all: "Todos",
-  Analgesicos: "Analgésicos",
-  Antibioticos: "Antibióticos",
-  Vitaminas: "Vitaminas",
-  "Cuidado personal": "Cuidado personal",
-  "Primeros auxilios": "Primeros auxilios",
-  Equipos: "Equipos",
-};
+interface Category {
+  id: string;
+  name: string;
+}
 
 export default function CatalogPage() {
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<"all" | ProductCategory>("all");
+  // category guarda el UUID real (o "all"). El backend filtra por categoryId.
+  const [category, setCategory] = useState<string>("all");
+  const [categories, setCategories] = useState<Category[]>([]);
   const debouncedQuery = useDebounce(query, 300);
+
+  // Carga las categorías reales con sus UUID al montar.
+  useEffect(() => {
+    api
+      .get<{ data: Category[] }>("/categories")
+      .then((r) => setCategories(r.data.data ?? []))
+      .catch(() => setCategories([]));
+  }, []);
 
   const { data: products = [], loading } = useAsync(
     () => productService.list({ category, query: debouncedQuery, onlyAvailable: true }),
@@ -68,9 +64,12 @@ export default function CatalogPage() {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
-        {CATEGORIES.map((cat) => (
-          <Chip key={cat} active={category === cat} onClick={() => setCategory(cat)}>
-            {CATEGORY_LABEL[cat]}
+        <Chip active={category === "all"} onClick={() => setCategory("all")}>
+          Todos
+        </Chip>
+        {categories.map((c) => (
+          <Chip key={c.id} active={category === c.id} onClick={() => setCategory(c.id)}>
+            {c.name}
           </Chip>
         ))}
       </div>

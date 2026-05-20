@@ -16,6 +16,34 @@ import { Button } from "@/components/ui/Button";
 import { DataTable, Column } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StatCard } from "@/components/features/dashboard/StatCard";
+import { toast } from "@/hooks/useToast";
+
+// Genera un CSV simple a partir de un array de objetos.
+// Vive aquí porque solo la usa esta página; si se reusa, mover a lib/utils.
+function downloadCsv<T extends Record<string, unknown>>(filename: string, rows: T[]) {
+  if (rows.length === 0) {
+    toast.error("No hay registros para exportar");
+    return;
+  }
+  const headers = Object.keys(rows[0]);
+  const escape = (v: unknown) => {
+    const s = String(v ?? "");
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = [
+    headers.join(","),
+    ...rows.map((r) => headers.map((h) => escape(r[h])).join(",")),
+  ].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 type ExpiryStatus = "vencido" | "urgente" | "proximo" | "ok";
 
@@ -110,16 +138,6 @@ export default function AdminExpiryPage() {
         <Badge variant={classification.variant}>{classification.label}</Badge>
       ),
     },
-    {
-      key: "actions",
-      header: "",
-      render: () => (
-        <Button size="sm" variant="ghost">
-          Ver detalle
-        </Button>
-      ),
-      align: "right",
-    },
   ];
 
   return (
@@ -127,7 +145,25 @@ export default function AdminExpiryPage() {
       <PageHeader
         title="Control de vencimientos"
         subtitle="Productos próximos a vencer y vencidos"
-        actions={<Button variant="secondary" size="sm">⬇ Exportar lista</Button>}
+        actions={
+          <Button
+            variant="secondary"
+            onClick={() =>
+              downloadCsv(
+                `vencimientos_${new Date().toISOString().slice(0, 10)}.csv`,
+                filtered.map(({ product, classification }) => ({
+                  Producto: product.name,
+                  SKU: product.sku ?? "",
+                  Vencimiento: product.expiryDate ?? "",
+                  Estado: classification.label,
+                  Stock: product.stock,
+                })),
+              )
+            }
+          >
+            📋 Exportar lista
+          </Button>
+        }
       />
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
