@@ -84,7 +84,7 @@ export const mapOrder = (o: ApiOrder): Order => ({
   customerId: o.customerId,
   customerName: o.customer?.fullName ?? "",
   customerPhone: o.customer?.phone ?? undefined,
-  items: o.items.map((it) => ({
+  items: (o.items ?? []).map((it) => ({
     productId: it.productId,
     productName: it.product?.name ?? "",
     unitPrice: Number(it.unitPrice),
@@ -94,11 +94,10 @@ export const mapOrder = (o: ApiOrder): Order => ({
   deliveryAddress: o.deliveryAddress,
   status: STATUS_MAP[o.status] ?? "Pendiente",
   createdAt: o.createdAt,
-  history:
-    o.history?.map((h) => ({
-      status: STATUS_MAP[h.toStatus] ?? "Pendiente",
-      changedAt: h.changedAt,
-    })) ?? [],
+  history: (o.history ?? []).map((h) => ({
+    status: STATUS_MAP[h.toStatus] ?? "Pendiente",
+    changedAt: h.changedAt,
+  })),
 });
 
 interface ApiMovement {

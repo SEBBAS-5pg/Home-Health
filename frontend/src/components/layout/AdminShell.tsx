@@ -5,20 +5,23 @@ import { useRouter } from "next/navigation";
 import { Sidebar, NavSection } from "./Sidebar";
 import { useLogout } from "@/hooks/useLogout";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useAuthStore } from "@/store/auth.store";
 
 export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const logout = useLogout();
   const me = useCurrentUser();
+  const hydrated = useAuthStore((s) => s.hydrated);
 
-  // Guard de rol: cualquiera que no sea admin no debería ver /admin/*.
+  // Guard de rol: no redirect hasta que la store esté rehidratada.
   useEffect(() => {
+    if (!hydrated) return;
     if (!me.isAuthenticated) {
       router.replace("/login");
     } else if (me.role !== "Admin") {
       router.replace("/catalog");
     }
-  }, [me.isAuthenticated, me.role, router]);
+  }, [hydrated, me.isAuthenticated, me.role, router]);
 
   const adminSections: NavSection[] = [
     {

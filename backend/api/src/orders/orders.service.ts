@@ -206,6 +206,11 @@ export class OrdersService {
             },
           },
         },
+        include: {
+          items: { include: { product: true } },
+          history: { orderBy: { changedAt: 'asc' } },
+          customer: { select: { id: true, fullName: true, email: true, phone: true } },
+        },
       });
 
       await tx.auditLog.create({
