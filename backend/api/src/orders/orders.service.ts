@@ -87,10 +87,29 @@ export class OrdersService {
         });
       }
 
-      // Número de pedido tipo PED-00128. Atómico vía count(); se podría reforzar
-      // con secuencia SQL si la concurrencia se vuelve crítica.
-      const count = await tx.order.count();
-      const number = `PED-${String(count + 129).padStart(5, '0')}`;
+      // Número de pedido tipo PED-00128.
+      // Reemplazamos el enfoque por contador no atómico (count) por una
+      // secuencia en la BD (`order_number_seq`) para evitar duplicados bajo
+      // concurrencia. Si la secuencia no existe, hacemos fallback al count().
+      let seqVal: number | null = null;
+      try {
+        const res = await tx.$queryRaw<Array<{ v: string }>>`
+          SELECT nextval('order_number_seq') as v
+        `;
+        if (res && res[0] && res[0].v) {
+          seqVal = parseInt(String(res[0].v), 10);
+        }
+      } catch (e) {
+        // Si la secuencia no existe o hay error, caeremos al método legacy.
+        seqVal = null;
+      }
+
+      if (seqVal === null) {
+        const count = await tx.order.count();
+        seqVal = count + 129;
+      }
+
+      const number = `PED-${String(seqVal).padStart(5, '0')}`;
 
       const order = await tx.order.create({
         data: {
