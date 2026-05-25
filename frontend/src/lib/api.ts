@@ -15,20 +15,38 @@ export const api: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-api.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("hh_token");
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-  }
+api.interceptors.request.use(async (config) => {
+  try {
+    if (typeof window !== "undefined") {
+      const { useAuthStore } = await import("../store/auth.store");
+      const storeToken = useAuthStore.getState().token;
+      const fallback = localStorage.getItem("hh_token");
+      const token = storeToken || fallback;
+      if (token) {
+        if (!config.headers) {
+          // initialize headers with a type-safe empty object for Axios
+          config.headers = {} as any;
+        }
+        // assign Authorization header without replacing the headers object
+        (config.headers as any).Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch (e) {}
   return config;
 });
 
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("hh_token");
-      window.location.href = "/login";
+    if (error.response?.status === 401) {
+      try {
+        if (typeof window !== "undefined") {
+          import("../store/auth.store").then((m) => m.useAuthStore.getState().logout()).catch(() => {});
+          try {
+            window.dispatchEvent(new Event("hh:logout"));
+          } catch (e) {}
+        }
+      } catch (e) {}
     }
     return Promise.reject(error);
   }
