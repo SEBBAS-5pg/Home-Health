@@ -10,20 +10,13 @@ async function bootstrap() {
   const logger = app.get(Logger);
   app.useLogger(logger);
 
-  // Seguridad y CORS.
   app.use(helmet());
   app.enableCors({
     origin: (process.env.CORS_ORIGIN ?? 'http://localhost:3000').split(','),
     credentials: true,
   });
 
-  // Prefijo común. El frontend ya apunta a NEXT_PUBLIC_API_URL/api.
-  app.setGlobalPrefix('api', { exclude: ['health', 'health/ready'] });
-
-  // Apagado limpio: termina conexiones de Prisma y otros recursos.
-  app.enableShutdownHooks();
-
-  // Swagger en dev.
+  // Swagger ANTES del prefijo global
   if (process.env.NODE_ENV !== 'production') {
     const swagger = new DocumentBuilder()
       .setTitle('Home-Health API')
@@ -34,6 +27,11 @@ async function bootstrap() {
     const doc = SwaggerModule.createDocument(app, swagger);
     SwaggerModule.setup('docs', app, doc);
   }
+
+  // Prefijo DESPUÉS de Swagger
+  app.setGlobalPrefix('api', { exclude: ['health', 'health/ready'] });
+
+  app.enableShutdownHooks();
 
   const port = Number(process.env.PORT ?? 4000);
   await app.listen(port);

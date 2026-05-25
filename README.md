@@ -16,15 +16,15 @@ Plataforma web para la gestión de inventario y pedidos en farmacias y droguerí
 ## Arquitectura en 30 segundos
 
 ```
-┌─────────────┐     HTTPS     ┌──────────────┐     TCP/5432     ┌──────────────┐
+┌─────────────┐     HTTP      ┌──────────────┐     TCP/5432     ┌──────────────┐
 │   web       │  ───────────▶ │     api      │ ──────────────▶  │      db      │
-│ Next.js 14  │   JWT Bearer  │  NestJS 11   │   Prisma + pool  │ Postgres 16  │
+│ Next.js 15  │   JWT Bearer  │  NestJS 11   │   Prisma + pool  │ Postgres 16  │
 │ :3000       │   { data,     │  :4000/api   │                  │   :5432      │
 │             │     meta }    │              │                  │              │
 └─────────────┘               └──────────────┘                  └──────────────┘
 ```
 
-Los tres viven en una red Docker interna llamada `hh_net`. El navegador del usuario solo sale por los puertos publicados (3000 y 4000). La BD nunca queda expuesta a Internet en producción.
+Los tres viven en una red Docker interna llamada `hh_net`. El navegador del usuario solo sale por los puertos publicados (3000 y 4000). La BD nunca queda expuesta a Internet.
 
 ## Arrancar todo con un comando
 
@@ -34,7 +34,7 @@ Requisitos: Docker Desktop 4.x (o docker + docker compose).
 git clone <repo>
 cd Home-Health
 cp .env.example .env          # editar JWT_*_SECRET con valores fuertes
-docker compose up --build
+docker compose up --build -d
 ```
 
 A los ~2 min:
@@ -48,7 +48,7 @@ La primera vez, el backend ejecuta automáticamente `prisma migrate deploy` ante
 **Credenciales del seed**:
 - admin@home-health.app / `Admin12345!`
 
-Para crear el admin la primera vez:
+Para sembrar el admin la primera vez:
 ```bash
 docker compose exec api npm run prisma:seed
 ```
@@ -59,22 +59,21 @@ docker compose exec api npm run prisma:seed
 Home-Health/
 ├── docker-compose.yml           Orquesta db + api + web en la red hh_net
 ├── .env.example                 Una sola fuente de verdad para configurar
-├── frontend/                    Next.js 14 + Tailwind + Zustand
+├── frontend/                    Next.js 15 + Tailwind + Zustand
 │   ├── Dockerfile               Multi-stage standalone (~120 MB)
 │   └── README.md
 ├── backend/api/                 NestJS 11 + Prisma + PostgreSQL
 │   ├── Dockerfile               Multi-stage Node 20 alpine (~150 MB)
 │   ├── prisma/                  Schema + migrations + seed
 │   └── README.md
-├── docs/                        Documentación académica (Hito 1 completo)
+├── docs/                        Documentación académica
 │   ├── INFORME-PROYECTO-AULA.md
 │   ├── 01-historias-de-usuario/
 │   ├── 02-base-de-datos/
-│   ├── 03-arquitectura/        (ADR + C4)
+│   ├── 03-arquitectura/         (ADR + C4)
 │   ├── 04-api/
 │   ├── 05-aws/
-│   └── 06-mockups/
-└── mockup-interactivo.html      Prototipo HTML navegable
+│   └── 06-mockups/              Prototipo HTML navegable y link Figma
 ```
 
 ## Comandos útiles
@@ -100,26 +99,79 @@ docker compose exec api npm test                # corre los tests
 | **api** | `node:20-alpine` (multi-stage) | ~150 MB | 1 vCPU / 512 MB RAM |
 | **web** | `node:20-alpine` (standalone) | ~120 MB | 1 vCPU / 256 MB RAM |
 
-**Total**: ~520 MB de imágenes. Apto para AWS Lightsail Containers en plan nano (`small` para tener holgura).
+**Total**: ~520 MB de imágenes. Apto para instancia EC2 `t2.micro` (capa gratuita de AWS).
 
-## Despliegue en AWS Lightsail Containers
+## Despliegue en AWS EC2
 
-1. Crear instancia de **Amazon RDS PostgreSQL** (`db.t4g.micro`) o usar Lightsail Database.
-2. Crear servicio de **Lightsail Containers** con dos contenedores: `api` y `web`.
-3. Subir las imágenes:
-   ```bash
-   docker build -t home-health-api ./backend/api
-   docker build -t home-health-web ./frontend \
-     --build-arg NEXT_PUBLIC_API_URL=https://api.home-health.app/api
-   aws lightsail push-container-image --service-name home-health \
-     --label api --image home-health-api
-   aws lightsail push-container-image --service-name home-health \
-     --label web --image home-health-web
-   ```
-4. Configurar variables de entorno en cada contenedor (ver `.env.example`).
-5. Apuntar el dominio público a Lightsail; abrir puerto 80 → web:3000 y 80/api → api:4000.
+El sistema se despliega sobre una instancia **EC2 Ubuntu** usando Docker Compose directamente. No se requieren servicios adicionales de orquestación.
 
-CI/CD en GitHub Actions (ADR-010 lo documenta) hace todo esto automáticamente al hacer push a `main`.
+### 1. Preparar la instancia EC2
+
+```bash
+# Conectarse por SSH
+ssh ubuntu@<IP_PUBLICA_EC2>
+
+# Actualizar el sistema
+sudo apt update && sudo apt upgrade -y
+
+# Instalar Docker y Docker Compose
+sudo apt install -y docker.io docker-compose
+
+# Iniciar Docker y habilitarlo al arranque
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Agregar el usuario al grupo docker (evita usar sudo)
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### 2. Clonar el repositorio y configurar
+
+```bash
+git clone <repo>
+cd Home-Health
+cp .env.example .env
+# Editar .env con los secretos de producción (JWT_*_SECRET, contraseñas, etc.)
+```
+
+### 3. Levantar los contenedores
+
+```bash
+docker compose up -d --build
+```
+
+### 4. Sembrar el admin
+
+```bash
+docker compose exec api npm run prisma:seed
+```
+
+### 5. Configurar el Security Group de EC2
+
+En la consola de AWS, agregar las siguientes reglas de entrada al Security Group de la instancia:
+
+| Puerto | Protocolo | Descripción |
+|--------|-----------|-------------|
+| 22 | TCP | SSH (administración) |
+| 3000 | TCP | Frontend |
+| 4000 | TCP | API backend |
+
+La aplicación queda accesible en:
+- Frontend → `http://<IP_PUBLICA_EC2>:3000`
+- API → `http://<IP_PUBLICA_EC2>:4000/api`
+
+### Actualizar después de cambios
+
+```bash
+ssh ubuntu@<IP_PUBLICA_EC2>
+cd Home-Health
+git pull
+docker compose down
+docker compose up -d --build
+```
+
+CI/CD en GitHub Actions (ADR-010 lo documenta) automatiza este proceso al hacer push a `main` vía SSH con `appleboy/ssh-action`.
 
 ## Documentación
 
@@ -159,3 +211,4 @@ npm run dev                # http://localhost:3000
 ## Licencia
 
 Uso académico. Corporación Universitaria del Huila (CORHUILA) · 2026-A.
+

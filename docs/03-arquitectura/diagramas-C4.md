@@ -4,12 +4,13 @@
 
 | Versión | Fecha       | Descripción                                                                                                | Responsables                                      |
 | :------ | :---------- | :--------------------------------------------------------------------------------------------------------- | :------------------------------------------------ |
-| 1.0     | 04/05/2026  | Diagramas C4 iniciales en draw.io.                                                                          | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 1.0     | 04/05/2026  | Diagramas C4 iniciales en draw.io.                                                                        | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 | 2.0     | 12/05/2026  | Reescritura como documento autocontenido con descripción textual por nivel y diagramas Mermaid verificables. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 2.1     | 24/05/2026  | Actualización de arquitectura de despliegue: migración de AWS Lightsail a EC2 + Docker Compose.          | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 
 ---
 
-## 1. Marco Conceptual del Modelo C4
+# 1. Marco Conceptual del Modelo C4
 
 El **modelo C4**, propuesto por Simon Brown (2018) en *The C4 Model for Visualising Software Architecture*, describe la arquitectura de un sistema en **cuatro niveles progresivos de zoom**, cada uno dirigido a una audiencia distinta:
 
@@ -26,180 +27,173 @@ Cada nivel debe ser **verificable**: el lector debe poder reconstruir mentalment
 
 ---
 
-## 2. Nivel 1 — Diagrama de Contexto (C1)
+# 2. Nivel 1 — Diagrama de Contexto (C1)
 
-### 2.1 Objetivo
+## 2.1 Objetivo
 
-Mostrar Home-Health como una "caja negra" dentro de su ecosistema: qué tipo de usuarios lo usan y qué sistemas externos consume o expone.
+Mostrar Home-Health como una "caja negra" dentro de su ecosistema: qué tipo de usuarios lo usan y sobre qué infraestructura se ejecuta.
 
-### 2.2 Elementos
+## 2.2 Elementos
 
-| Elemento                    | Tipo            | Descripción                                                                                              |
-| :-------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------- |
-| **Cliente**                 | Persona         | Usuario final que adquiere medicamentos a domicilio.                                                     |
-| **Administrador**           | Persona         | Personal de la farmacia que opera catálogo, inventario, pedidos, vencimientos y reportes.                |
-| **Home-Health**             | Sistema (foco)  | Plataforma web de gestión farmacéutica con cliente público y panel administrativo.                       |
-| **Amazon CloudWatch Logs**  | Sistema externo | Recolección de logs estructurados y métricas básicas del backend.                                        |
+| Elemento              | Tipo            | Descripción                                                                 |
+| :-------------------- | :-------------- | :-------------------------------------------------------------------------- |
+| **Cliente**           | Persona         | Usuario final que adquiere medicamentos a domicilio.                        |
+| **Administrador**     | Persona         | Personal de la farmacia que opera catálogo, inventario, pedidos y reportes. |
+| **Home-Health**       | Sistema (foco)  | Plataforma web de gestión farmacéutica con cliente público y panel admin.   |
+| **AWS EC2**           | Infraestructura | Instancia Ubuntu donde se ejecuta Docker Compose con todos los servicios.   |
 
-### 2.3 Relaciones principales
+## 2.3 Relaciones principales
 
-| Origen        | Destino           | Descripción                                       | Protocolo / Tecnología |
-| :------------ | :---------------- | :------------------------------------------------ | :--------------------- |
-| Cliente       | Home-Health       | Explora catálogo, realiza y consulta pedidos      | HTTPS                  |
-| Administrador | Home-Health       | Gestiona catálogo, inventario y pedidos           | HTTPS                  |
-| Home-Health   | CloudWatch Logs   | Publica logs estructurados de cada operación      | AWS SDK                |
+| Origen        | Destino      | Descripción                                       | Protocolo / Tecnología |
+| :------------ | :----------- | :------------------------------------------------ | :--------------------- |
+| Cliente       | Home-Health  | Explora catálogo, realiza y consulta pedidos      | HTTPS                  |
+| Administrador | Home-Health  | Gestiona catálogo, inventario y pedidos           | HTTPS                  |
+| Home-Health   | AWS EC2      | Ejecuta frontend, backend y base de datos         | Docker Compose         |
 
-### 2.4 Diagrama C1
+## 2.4 Diagrama C1
 
 ```mermaid
 flowchart TB
     Cliente(("👤 Cliente"))
     Admin(("👤 Administrador"))
+
     HH["🏥 Home-Health<br/>Sistema de gestión farmacéutica<br/>con plataforma web cliente y admin"]
-    CW["📊 CloudWatch Logs<br/>Observabilidad"]
+
+    EC2["☁️ AWS EC2<br/>Ubuntu Server + Docker Compose"]
 
     Cliente -->|"Explora catálogo,<br/>realiza pedidos<br/>(HTTPS)"| HH
-    Admin -->|"Opera catálogo,<br/>inventario, pedidos<br/>(HTTPS)"| HH
-    HH -->|"Publica logs<br/>estructurados"| CW
+    Admin -->|"Opera catálogo,<br/>inventario y pedidos<br/>(HTTPS)"| HH
+    HH -->|"Desplegado sobre"| EC2
 
     classDef person fill:#14B8A6,stroke:#0F766E,color:#fff
     classDef system fill:#0F172A,stroke:#0F766E,color:#fff
-    classDef external fill:#94A3B8,stroke:#475569,color:#fff
+    classDef infra fill:#94A3B8,stroke:#475569,color:#fff
+
     class Cliente,Admin person
     class HH system
-    class CW external
+    class EC2 infra
 ```
 
 📎 **Diagrama de respaldo (draw.io)**: ![C4 Nivel 1 - Contexto](../imagenes/C4_Nivel1_Contexto.drawio.png)
 
 ---
 
-## 3. Nivel 2 — Diagrama de Contenedores (C2)
+# 3. Nivel 2 — Diagrama de Contenedores (C2)
 
-### 3.1 Objetivo
+## 3.1 Objetivo
 
-Hacer zoom dentro de Home-Health para mostrar las **piezas tecnológicas desplegables** (contenedores) y sus protocolos de comunicación. Cada contenedor es algo que se despliega de forma independiente (proceso, base de datos, servicio gestionado).
+Hacer zoom dentro de Home-Health para mostrar las piezas tecnológicas ejecutadas dentro del stack Docker Compose y sus protocolos de comunicación.
 
-### 3.2 Contenedores
+## 3.2 Contenedores
 
-| Contenedor              | Tecnología                      | Responsabilidad                                                                                                 | Despliegue                       |
-| :---------------------- | :------------------------------ | :-------------------------------------------------------------------------------------------------------------- | :------------------------------- |
-| **Web App**             | Next.js 15 + React 19 + Tailwind | Render SSR y client-side; rutas `(auth)`, `(client)`, `admin`; consume API REST; persiste token JWT en localStorage. | AWS Lightsail Container          |
-| **API Backend**         | NestJS 10 + TypeScript          | API REST, autenticación JWT, lógica de dominio, transacciones, validaciones, audit logging.                     | AWS Lightsail Container          |
-| **Base de Datos**       | PostgreSQL 16                   | Persistencia relacional con integridad referencial, transacciones, constraints CHECK e índices.                 | Amazon RDS                       |
-| **Almacenamiento Imágenes** | Amazon S3                  | Imágenes de productos del catálogo subidas por el admin.                                                        | Amazon S3 (bucket privado + signed URLs) |
-| **CDN / Edge**          | Amazon CloudFront               | Distribución global de assets estáticos y caching.                                                              | AWS CloudFront                   |
-| **Cron / Jobs**         | NestJS Schedule module          | Trabajos programados: detector de inconsistencias de stock, recordatorios de vencimiento, limpieza AuditLog.    | Embebido en API Backend          |
+| Contenedor        | Tecnología                       | Responsabilidad                                                                 | Despliegue                                |
+| :---------------- | :------------------------------- | :------------------------------------------------------------------------------ | :---------------------------------------- |
+| **Web App**       | Next.js 15 + React 19 + Tailwind | Render SSR y client-side; consume API REST; persiste JWT en localStorage.      | Contenedor Docker ejecutado en EC2 Ubuntu |
+| **API Backend**   | NestJS 10 + TypeScript           | API REST, autenticación JWT, lógica de dominio, validaciones y transacciones.  | Contenedor Docker ejecutado en EC2 Ubuntu |
+| **Base de Datos** | PostgreSQL 16                    | Persistencia relacional con constraints CHECK, índices y transacciones.         | Contenedor Docker PostgreSQL en EC2       |
+| **Cron / Jobs**   | NestJS Schedule module           | Verificación de stock, recordatorios de vencimiento y limpieza de registros.    | Embebido en API Backend                   |
 
-### 3.3 Relaciones
+## 3.3 Relaciones
 
-| Origen         | Destino                | Protocolo               | Descripción                                                       |
-| :------------- | :--------------------- | :---------------------- | :---------------------------------------------------------------- |
-| Cliente / Admin| Web App                | HTTPS                   | Navegador HTTP/2                                                  |
-| Web App        | API Backend            | HTTPS + JSON            | API REST con Bearer JWT en cada request                           |
-| API Backend    | Base de Datos          | TCP / SSL (puerto 5432) | Cliente Prisma con pool de conexiones                             |
-| API Backend    | Almacenamiento S3      | HTTPS (AWS SDK v3)      | Upload de imágenes y generación de presigned URLs                 |
-| API Backend    | CloudWatch Logs        | HTTPS (AWS SDK v3)      | Logs estructurados en JSON                                        |
-| Web App        | CloudFront             | HTTPS                   | Imágenes optimizadas vía CDN                                      |
-| CloudFront     | S3                     | HTTPS                   | Origin para imágenes                                              |
+| Origen          | Destino         | Protocolo         | Descripción                                            |
+| :-------------- | :---------------| :---------------- | :----------------------------------------------------- |
+| Cliente / Admin | Web App         | HTTPS             | Navegador web                                          |
+| Web App         | API Backend     | HTTPS + JSON      | API REST con Bearer JWT                                |
+| API Backend     | Base de Datos   | TCP / Puerto 5432 | Prisma ORM                                             |
+| API Backend     | Docker Logs     | stdout / stderr   | Logging estructurado accesible vía docker compose logs |
 
-### 3.4 Diagrama C2
+## 3.4 Diagrama C2
 
 ```mermaid
 flowchart TB
+
     subgraph Users["Usuarios"]
         Cliente(("👤 Cliente"))
         Admin(("👤 Administrador"))
     end
 
-    subgraph HH["Sistema Home-Health"]
-        Web["🖥️ Web App<br/>Next.js 15 + React 19<br/>Tailwind CSS<br/>Lightsail Container"]
-        API["⚙️ API Backend<br/>NestJS 10 + TypeScript<br/>Prisma + JWT<br/>Lightsail Container"]
-        DB[("🗄️ PostgreSQL 16<br/>Amazon RDS")]
-        Cron["⏰ Cron Jobs<br/>NestJS Schedule<br/>(stock check, expiry, cleanup)"]
-    end
+    subgraph EC2["☁️ AWS EC2 Ubuntu"]
+        
+        Web["🖥️ Web App<br/>Next.js 15 + React 19<br/>Docker Container"]
 
-    subgraph AWS["Servicios AWS"]
-        S3["🪣 S3<br/>Imágenes productos"]
-        CF["🌐 CloudFront<br/>CDN"]
-        CW["📊 CloudWatch Logs"]
+        API["⚙️ API Backend<br/>NestJS 10 + TypeScript<br/>Prisma + JWT<br/>Docker Container"]
+
+        DB[("🗄️ PostgreSQL 16<br/>Docker Container")]
+
+        Cron["⏰ Cron Jobs<br/>NestJS Schedule"]
     end
 
     Cliente -->|"HTTPS"| Web
     Admin -->|"HTTPS"| Web
-    Web -->|"REST + JWT<br/>(HTTPS/JSON)"| API
-    Web -->|"Imágenes<br/>(HTTPS)"| CF
-    CF --> S3
-    API -->|"Prisma<br/>TCP/SSL"| DB
-    API -->|"AWS SDK"| S3
-    API -->|"AWS SDK"| CW
+
+    Web -->|"REST + JWT"| API
+    API -->|"Prisma ORM"| DB
+
     Cron -.->|"in-process"| API
 
     classDef person fill:#14B8A6,stroke:#0F766E,color:#fff
     classDef container fill:#0F766E,stroke:#0F172A,color:#fff
     classDef db fill:#F59E0B,stroke:#D97706,color:#fff
-    classDef aws fill:#FB7185,stroke:#E11D48,color:#fff
+
     class Cliente,Admin person
     class Web,API,Cron container
     class DB db
-    class S3,CF,CW aws
 ```
 
 📎 **Diagrama de respaldo (draw.io)**: ![C4 Nivel 2 - Contenedores](../imagenes/C4_Nivel2_Contenedores.drawio.png)
 
 ---
 
-## 4. Nivel 3 — Diagrama de Componentes (C3)
+# 4. Nivel 3 — Diagrama de Componentes (C3)
 
-### 4.1 Objetivo
+## 4.1 Objetivo
 
-Hacer zoom dentro del **API Backend** para mostrar la organización interna por módulos siguiendo Clean Architecture (ver ADR-001) y los flujos de invocación entre capas.
+Hacer zoom dentro del **API Backend** para mostrar la organización interna por módulos siguiendo Clean Architecture (ADR-001) y los flujos de invocación entre capas.
 
-### 4.2 Estructura modular del backend
+## 4.2 Estructura modular del backend
 
-El backend está organizado en **8 módulos funcionales** alineados con los servicios REST mínimos exigidos por el proyecto:
+El backend está organizado en módulos funcionales alineados con los servicios REST del sistema:
 
-| # | Módulo          | Endpoints principales                              | Responsabilidad                                              |
-| :- | :-------------- | :------------------------------------------------- | :----------------------------------------------------------- |
-| 1 | **Auth**        | `POST /auth/register`, `/login`, `/logout`                      | Registro, login y cierre de sesión con JWT |
-| 2 | **Users**       | `GET/PATCH /users`, `/users/me`                    | Gestión de usuarios y perfiles                                |
-| 3 | **Products**    | `GET/POST/PATCH/DELETE /products`                  | Catálogo de medicamentos                                      |
-| 4 | **Inventory**   | `POST /inventory/movements`, `GET /inventory`      | Movimientos de stock (entradas y salidas)                     |
-| 5 | **Orders**      | `POST/GET/PATCH /orders`                           | Ciclo de vida de pedidos con máquina de estados               |
-| 6 | **Expirations** | `GET /products/expiring`                           | Productos próximos a vencer o vencidos                        |
-| 7 | **Reports**     | `GET /reports/{type}`                              | Reportes con Strategy + exportación PDF/Excel/CSV             |
-| 8 | **Notifications** | `GET/PATCH /notifications`                       | Centro de notificaciones del sistema                          |
+| # | Módulo | Responsabilidad |
+| :- | :----- | :-------------- |
+| 1 | **Auth** | Registro, login y autenticación JWT |
+| 2 | **Users** | Gestión de usuarios |
+| 3 | **Products** | Catálogo de medicamentos |
+| 4 | **Inventory** | Movimientos de stock |
+| 5 | **Orders** | Gestión del ciclo de vida de pedidos |
+| 6 | **Expirations** | Productos próximos a vencer |
+| 7 | **Reports** | Reportes PDF/Excel/CSV |
+| 8 | **Notifications** | Centro de notificaciones |
 
-### 4.3 Capas internas (por módulo)
+## 4.3 Capas internas
 
-Siguiendo Clean Architecture (Martin, 2017), cada módulo replica la misma estructura de cuatro capas:
-
-```
+```text
 módulo/
-├── controller.ts       ← Recibe HTTP, valida DTO, devuelve HTTP
-├── service.ts          ← Lógica de negocio, transacciones, reglas
-├── repository.ts       ← Acceso a datos vía Prisma
-└── dto/                ← Data Transfer Objects con validación class-validator
+├── controller.ts
+├── service.ts
+├── repository.ts
+└── dto/
 ```
 
-### 4.4 Componentes transversales (cross-cutting concerns)
+## 4.4 Componentes transversales
 
-| Componente                | Responsabilidad                                                                       |
-| :------------------------ | :------------------------------------------------------------------------------------ |
-| **JwtAuthGuard**          | Valida JWT en cada request protegido y adjunta el `user` al contexto.                 |
-| **RolesGuard**            | Restringe endpoints `/admin/*` al rol ADMIN.                                          |
-| **AuditInterceptor**      | Registra en AuditLog acciones críticas (CREATE/UPDATE/DELETE/STATE_CHANGE/LOGIN).     |
-| **TransformInterceptor**  | Normaliza la respuesta `{ data, meta }`.                                              |
-| **HttpExceptionFilter**   | Convierte excepciones de dominio en respuestas HTTP con `traceId`.                    |
-| **PrismaService**         | Cliente Prisma compartido con configuración de pool y logging.                        |
-| **LoggerService (Pino)**  | Logging estructurado JSON con `traceId`, `userId`, `module`, `action`.                |
-| **OrderStateMachine**     | Encapsula transiciones válidas del pedido (patrón State, ver ADR-007).                |
-| **ReportStrategyRegistry**| Mapa `ReportType → IReportStrategy<T>` (patrón Strategy, ver ADR-007).                |
+| Componente | Responsabilidad |
+| :---------- | :--------------- |
+| **JwtAuthGuard** | Valida JWT |
+| **RolesGuard** | Restringe acceso ADMIN |
+| **AuditInterceptor** | Registra eventos críticos |
+| **TransformInterceptor** | Normaliza respuestas |
+| **HttpExceptionFilter** | Manejo centralizado de errores |
+| **PrismaService** | Cliente Prisma compartido |
+| **LoggerService (Pino)** | Logging estructurado |
+| **OrderStateMachine** | Máquina de estados pedidos |
+| **ReportStrategyRegistry** | Estrategias de reportes |
 
-### 4.5 Diagrama C3
+## 4.5 Diagrama C3
 
 ```mermaid
 flowchart TB
+
     subgraph CrossCutting["🔁 Componentes Transversales"]
         Guards["JwtAuthGuard<br/>RolesGuard"]
         Interceptors["AuditInterceptor<br/>TransformInterceptor"]
@@ -208,20 +202,20 @@ flowchart TB
         Prisma["PrismaService"]
     end
 
-    subgraph Modules["📦 Módulos de dominio"]
-        Auth["Auth Module"]
-        Users["Users Module"]
-        Products["Products Module"]
-        Inventory["Inventory Module"]
-        Orders["Orders Module"]
-        Expirations["Expirations Module"]
-        Reports["Reports Module"]
-        Notifications["Notifications Module"]
+    subgraph Modules["📦 Módulos"]
+        Auth["Auth"]
+        Users["Users"]
+        Products["Products"]
+        Inventory["Inventory"]
+        Orders["Orders"]
+        Expirations["Expirations"]
+        Reports["Reports"]
+        Notifications["Notifications"]
     end
 
-    subgraph DomainLogic["🎯 Lógica de dominio compartida"]
-        StateMachine["OrderStateMachine<br/>(patrón State)"]
-        Strategies["ReportStrategyRegistry<br/>(patrón Strategy)"]
+    subgraph DomainLogic["🎯 Lógica Compartida"]
+        StateMachine["OrderStateMachine"]
+        Strategies["ReportStrategyRegistry"]
     end
 
     DB[("PostgreSQL")]
@@ -231,14 +225,17 @@ flowchart TB
     Modules --> Filters
     Modules --> Logger
     Modules --> Prisma
+
     Orders --> StateMachine
     Reports --> Strategies
+
     Prisma --> DB
 
     classDef cross fill:#94A3B8,stroke:#475569,color:#fff
     classDef module fill:#14B8A6,stroke:#0F766E,color:#fff
     classDef domain fill:#FB7185,stroke:#E11D48,color:#fff
     classDef db fill:#F59E0B,stroke:#D97706,color:#fff
+
     class Guards,Interceptors,Filters,Logger,Prisma cross
     class Auth,Users,Products,Inventory,Orders,Expirations,Reports,Notifications module
     class StateMachine,Strategies domain
@@ -247,64 +244,23 @@ flowchart TB
 
 📎 **Diagrama de respaldo (draw.io)**: ![C4 Nivel 3 - Componentes](../imagenes/C4_Nivel3_Componentes.drawio.png)
 
-### 4.6 Flujo de invocación típico: confirmar pedido
+---
 
-Para ilustrar la interacción entre componentes, este diagrama de secuencia muestra el flujo completo de `POST /orders` (HU09 — Crear pedido):
+# 5. Atributos de Calidad Direccionados
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Cliente
-    participant Web as Web App<br/>(Next.js)
-    participant Guard as JwtAuthGuard
-    participant Ctrl as OrdersController
-    participant Svc as OrdersService
-    participant SM as OrderStateMachine
-    participant Repo as OrdersRepository
-    participant Prisma as PrismaService
-    participant DB as PostgreSQL
-    participant Audit as AuditInterceptor
-
-    Cliente->>Web: Clic "Confirmar pedido"
-    Web->>Guard: POST /orders<br/>Authorization: Bearer JWT
-    Guard->>Guard: Valida JWT,<br/>extrae user
-    Guard->>Ctrl: Request autenticado
-    Ctrl->>Ctrl: Valida CreateOrderDto<br/>(class-validator)
-    Ctrl->>Svc: createOrder(dto, user)
-    Svc->>SM: Inicializa estado "Pendiente"
-    Svc->>Prisma: $transaction begin
-    Prisma->>DB: SELECT FOR UPDATE products
-    DB-->>Prisma: Stock actual
-    Svc->>Svc: Valida stock suficiente<br/>(invariante RN02)
-    Svc->>Repo: createOrder + createOrderItems
-    Repo->>Prisma: INSERT order, order_items
-    Prisma->>DB: INSERT (constraints CHECK validan)
-    Svc->>Audit: Registra en AuditLog
-    Prisma->>DB: $transaction commit
-    Svc-->>Ctrl: Order creado
-    Ctrl-->>Web: 201 { data: order }
-    Web-->>Cliente: Toast "Pedido #00128 creado"
-```
+| Atributo de calidad | Cómo lo aborda la arquitectura |
+| :------------------ | :----------------------------- |
+| **Modificabilidad** | Modularización por dominio + Clean Architecture |
+| **Mantenibilidad** | TypeScript + Prisma ORM |
+| **Seguridad** | JWT + Guards + bcrypt |
+| **Confiabilidad** | Transacciones + constraints CHECK |
+| **Testabilidad** | Pirámide de pruebas |
+| **Observabilidad** | Logging estructurado + docker compose logs |
+| **Deployabilidad** | Docker Compose sobre EC2 |
 
 ---
 
-## 5. Atributos de Calidad Direccionados
-
-Cada decisión arquitectónica reflejada en los diagramas C4 atiende un **atributo de calidad** específico (Bass et al., 2021):
-
-| Atributo de calidad | Cómo lo aborda la arquitectura                                                                |
-| :------------------ | :-------------------------------------------------------------------------------------------- |
-| **Modificabilidad** | Modularización por dominio + Clean Architecture (ADR-001) + patrones Strategy/State (ADR-007) |
-| **Mantenibilidad**  | TypeScript end-to-end, type-safety con Prisma (ADR-005), CI con type-check (ADR-010)          |
-| **Seguridad**       | JWT (ADR-003) + Guards + audit trail (ADR-009, ADR-011) + bcrypt para contraseñas              |
-| **Confiabilidad**   | Transacciones (ADR-002, ADR-012) + máquina de estados + constraints CHECK (ADR-011)            |
-| **Testabilidad**    | Pirámide de pruebas en 3 niveles (ADR-008)                                                    |
-| **Observabilidad**  | Logging estructurado + health checks + AuditLog (ADR-009)                                     |
-| **Deployabilidad**  | Containers Docker (ADR-004) + pipeline CI/CD (ADR-010)                                        |
-
----
-
-## 6. Referencias
+# 6. Referencias
 
 - Brown, S. (2018). *The C4 Model for Visualising Software Architecture*. Leanpub. https://c4model.com
 - Bass, L., Clements, P., & Kazman, R. (2021). *Software Architecture in Practice* (4th ed.). Addison-Wesley.
@@ -312,3 +268,4 @@ Cada decisión arquitectónica reflejada en los diagramas C4 atiende un **atribu
 - Fowler, M. (2002). *Patterns of Enterprise Application Architecture*. Addison-Wesley.
 - Richardson, C. (2018). *Microservices Patterns*. Manning.
 - Evans, E. (2003). *Domain-Driven Design: Tackling Complexity in the Heart of Software*. Addison-Wesley.
+

@@ -106,8 +106,6 @@ Se consideró organizar el sistema exclusivamente por capas globales (controller
 
 ---
 
-
-
 # ADR-002: Usar PostgreSQL como base de datos relacional principal
 
 ## Estado
@@ -194,7 +192,6 @@ Se consideró utilizar MySQL como alternativa relacional. Aunque cumple con gran
 
 ---
 
-
 # ADR-003: Implementar autenticación basada en JWT
 
 ## Estado
@@ -278,8 +275,7 @@ Se evaluó utilizar soluciones externas como Auth0 o Firebase Authentication. Es
 
 ---
 
-
-# ADR-004: Containerización y despliegue mediante Docker y AWS Lightsail Containers
+# ADR-004: Containerización y despliegue mediante Docker Compose en instancia EC2
 
 ## Estado
 
@@ -295,26 +291,38 @@ La solución contempla múltiples componentes tecnológicos desacoplados, incluy
 
 Adicionalmente, el proyecto será desplegado en infraestructura cloud utilizando servicios de AWS como parte del alcance académico del sistema.
 
-Se evaluaron diferentes alternativas de despliegue en AWS, incluyendo instancias EC2 tradicionales y plataformas más avanzadas orientadas a microservicios. Sin embargo, varias de estas opciones introducen complejidad operacional adicional relacionada con administración manual de infraestructura, balanceadores de carga, orquestación avanzada o configuraciones distribuidas innecesarias para el alcance actual del MVP.
+Se evaluaron diferentes alternativas de despliegue en AWS. AWS Lightsail Containers fue considerado inicialmente por su interfaz simplificada para despliegue de contenedores; sin embargo, su modelo de facturación continua por contenedor activo genera costos que superan el presupuesto académico del proyecto incluso en períodos de bajo uso. Se optó por una instancia EC2 con Ubuntu sobre la cual se ejecuta Docker Compose, eliminando costos de orquestación gestionada y aprovechando la capa gratuita de EC2 (`t2.micro` o `t3.micro`).
 
 ---
 
 ## Decisión
 
-Se decide utilizar contenedores Docker como estrategia principal de empaquetado y ejecución del sistema.
+Se decide utilizar contenedores Docker orquestados con **Docker Compose** sobre una instancia **EC2 Ubuntu** como estrategia de despliegue cloud.
 
-La solución será desplegada utilizando una arquitectura basada en contenedores separados para:
+La instancia EC2 ejecuta los tres servicios definidos en `docker-compose.yml`:
 
-- frontend,
-- backend.
+- `db`: PostgreSQL 16 como contenedor con volumen persistente.
+- `api`: backend NestJS construido con imagen multi-stage.
+- `web`: frontend Next.js en modo standalone.
 
-Durante el desarrollo local se utilizará Docker Compose para facilitar la ejecución coordinada de los servicios y mantener consistencia entre entornos.
+Los tres servicios comparten la red interna `hh_net`. Solo los puertos 3000 (web) y 4000 (api) se exponen al exterior mediante las reglas del Security Group de EC2. La base de datos nunca queda expuesta a Internet.
 
-Como infraestructura objetivo de despliegue cloud, se utilizará AWS Lightsail Containers para la ejecución de los contenedores de aplicación y Amazon RDS PostgreSQL como servicio administrado de base de datos relacional.
+El proceso de despliegue en la instancia EC2 consiste en:
 
-La administración y despliegue de recursos cloud se realizará mediante AWS CLI y configuración de permisos utilizando IAM.
+1. Instalar Docker y Docker Compose en la instancia Ubuntu (`sudo apt install -y docker.io docker-compose`).
+2. Clonar el repositorio desde GitHub (`git clone`).
+3. Configurar el archivo `.env` con los secretos de producción.
+4. Ejecutar `docker compose up -d --build`.
 
-Esta aproximación permite mantener simplicidad operativa para el MVP, reduciendo complejidad de infraestructura mientras se conservan beneficios de portabilidad, aislamiento y reproducibilidad del entorno de ejecución.
+Las actualizaciones se realizan conectándose por SSH a la instancia y ejecutando `git pull` seguido de `docker compose up -d --build`.
+
+El Security Group de EC2 debe tener habilitadas las siguientes reglas de entrada:
+
+| Puerto | Protocolo | Descripción        |
+| :----- | :-------- | :----------------- |
+| 22     | TCP       | SSH (administración) |
+| 3000   | TCP       | Frontend (web)     |
+| 4000   | TCP       | API backend        |
 
 ---
 
@@ -328,24 +336,22 @@ Esta aproximación permite mantener simplicidad operativa para el MVP, reduciend
 - Simplificación del proceso de despliegue y configuración.
 - Reducción de problemas relacionados con dependencias locales.
 - Facilita integración futura con pipelines de integración y despliegue continuo.
-- Uso de RDS permite delegar administración de base de datos a servicios administrados de AWS.
-- Lightsail Containers reduce complejidad operacional frente a soluciones más avanzadas de orquestación.
+- EC2 con Docker Compose aprovecha la capa gratuita de AWS, eliminando costos de orquestación gestionada durante el período académico.
 
 ### Negativas / Riesgos
 
-- Requiere aprendizaje inicial de Docker y herramientas de AWS.
+- Requiere aprendizaje inicial de Docker y administración básica de instancias EC2.
 - Incrementa complejidad frente a ejecución completamente local sin contenedores.
-- Posibles costos asociados al uso de infraestructura cloud.
-- Configuraciones incorrectas de IAM o redes pueden afectar despliegue y seguridad.
-- Limitaciones de escalabilidad frente a plataformas más avanzadas de orquestación de contenedores.
+- La base de datos corre en el mismo host que la aplicación; en producción real se recomendaría migrar a RDS para separación de responsabilidades y backups gestionados.
+- Configuraciones incorrectas del Security Group pueden afectar despliegue y seguridad.
 
 ---
 
 ## Alternativas consideradas
 
-### 1. Despliegue tradicional en instancia EC2
+### 1. AWS Lightsail Containers
 
-Se consideró desplegar manualmente el sistema sobre una máquina virtual EC2. Esta alternativa fue descartada debido a la mayor responsabilidad administrativa sobre configuración del servidor, dependencias y mantenimiento del entorno.
+Se consideró inicialmente por su interfaz simplificada para despliegue de contenedores. Fue descartado debido a su modelo de facturación continua por contenedor activo, que genera costos que superan el presupuesto académico del proyecto incluso en períodos de bajo uso.
 
 ### 2. Uso de Kubernetes o Amazon ECS
 
@@ -608,7 +614,7 @@ Accepted
 
 ## Contexto
 
-El sistema desplegado en AWS Lightsail no tiene visibilidad nativa de qué ocurre en producción. Una falla en un endpoint, una transacción que se queda colgada o un stock que queda inconsistente pueden permanecer ocultos hasta que un usuario reporta el problema.
+El sistema desplegado en AWS EC2 no tiene visibilidad nativa de qué ocurre en producción. Una falla en un endpoint, una transacción que se queda colgada o un stock que queda inconsistente pueden permanecer ocultos hasta que un usuario reporta el problema.
 
 Richardson (2018) en *Microservices Patterns* enfatiza que la observabilidad es un **prerrequisito de despliegue en producción**, no una característica opcional. Aunque Home-Health no es un sistema de microservicios, las mismas prácticas aplican: *structured logging*, *health checks* y *audit trail*.
 
@@ -618,8 +624,8 @@ Richardson (2018) en *Microservices Patterns* enfatiza que la observabilidad es 
 
 Se implementa observabilidad en tres capas:
 
-1. **Logging estructurado con Pino** (NestJS): cada log incluye `level`, `traceId`, `userId`, `module`, `action`, `payload`. Salida en JSON a stdout, recolectada por CloudWatch Logs.
-2. **Health checks**: `GET /health` (liveness) y `GET /health/ready` (readiness con check a Postgres). Configurados en el contenedor Lightsail.
+1. **Logging estructurado con Pino** (NestJS): cada log incluye `level`, `traceId`, `userId`, `module`, `action`, `payload`. Salida en JSON a stdout, accesible mediante `docker compose logs -f api` en la instancia EC2; para persistencia se pueden redirigir a un archivo o integrar con CloudWatch Logs Agent opcionalmente.
+2. **Health checks**: `GET /health` (liveness) y `GET /health/ready` (readiness con check a Postgres). Configurados en la instancia EC2; el endpoint `/health/ready` es verificado por el script de despliegue tras cada `docker compose up`.
 3. **Audit trail** en base de datos (ver ADR-011): cada acción crítica (creación/cambio de estado de pedido, ajuste de stock, login admin) genera un registro en la entidad `AuditLog`.
 
 ---
@@ -629,12 +635,12 @@ Se implementa observabilidad en tres capas:
 ### Positivas
 
 - Trazabilidad por `traceId` desde request HTTP hasta queries SQL.
-- CloudWatch Logs permite búsquedas y alertas básicas sin costo adicional significativo.
+- Los logs en stdout son inmediatamente accesibles vía `docker compose logs` sin configuración adicional.
 - Audit trail satisface requisitos regulatorios del dominio farmacéutico.
 
 ### Negativas / Riesgos
 
-- Volumen de logs puede crecer; requiere política de retención (30 días en CloudWatch).
+- Sin CloudWatch por defecto, los logs no persisten si el contenedor se reinicia; requiere configuración adicional para retención a largo plazo.
 - Logs en JSON son menos legibles directamente; se requiere herramienta o filtros para análisis manual.
 
 ---
@@ -658,8 +664,14 @@ Sin pipeline automatizado las desplegadas dependen de pasos manuales, son frecue
 Se configura un pipeline con tres etapas en GitHub Actions:
 
 1. **CI** (en cada PR): lint, type-check, unit tests, integration tests con Testcontainers.
-2. **Build** (en push a `main`): build de imágenes Docker para frontend y backend, push al registry de AWS (ECR público o Lightsail Container Registry).
-3. **CD** (en push a `main` exitoso): trigger de despliegue en Lightsail Containers vía AWS CLI, ejecución de migraciones Prisma, smoke test contra `GET /health`.
+2. Build (en push a `main`): validación y construcción de las imágenes Docker del frontend y backend para verificar integridad del despliegue antes de producción.
+3. CD (en push a `main` exitoso): despliegue automatizado en la instancia EC2 vía SSH (usando `appleboy/ssh-action`) ejecutando:
+
+`git pull`
+`docker compose down`
+`docker compose up -d --build`
+
+El despliegue reconstruye localmente las imágenes Docker en la instancia EC2 utilizando el código más reciente del repositorio.
 
 Secretos manejados en GitHub Secrets, no en código.
 
@@ -677,6 +689,7 @@ Secretos manejados en GitHub Secrets, no en código.
 
 - GitHub Actions tiene cuota mensual gratuita; proyecto activo puede agotarla en cuentas free.
 - Errores en el pipeline pueden bloquear el flujo del equipo si no hay un *break-glass* manual.
+- La clave SSH privada para acceder a EC2 debe manejarse como secreto en GitHub con rotación periódica.
 
 ---
 
@@ -776,7 +789,7 @@ Toda operación que modifica stock se ejecuta dentro de `prisma.$transaction([..
 
 ### 2. Trigger de verificación nightly
 
-Un job programado (CloudWatch Events + Lambda o cron en Lightsail) compara cada noche `Product.stock` con la agregación `SUM(entradas) - SUM(salidas)` desde `InventoryMovement`. Si hay discrepancia, genera notificación de auditoría.
+Un job programado mediante el módulo `@nestjs/schedule` (cron integrado en el contenedor `api`) compara cada noche `Product.stock` con la agregación `SUM(entradas) - SUM(salidas)` desde `InventoryMovement`. Si hay discrepancia, genera notificación de auditoría.
 
 ---
 
@@ -791,7 +804,7 @@ Un job programado (CloudWatch Events + Lambda o cron en Lightsail) compara cada 
 ### Negativas / Riesgos
 
 - Bloqueo pesimista puede generar contención si múltiples pedidos concurrentes tocan el mismo producto.
-- Trigger nightly añade complejidad operacional y requiere monitoreo.
+- El cron de verificación corre dentro del mismo contenedor `api`; si el contenedor está caído, el job no se ejecuta.
 
 ---
 

@@ -16,6 +16,7 @@
 | 1.0     | 03/05/2026  | Versión inicial del informe con descripción del problema y propuesta general.                                                                | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 | 1.1     | 10/05/2026  | Inclusión de marco normativo (CONPES, Decreto 2200, DANE).                                                                                   | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 | 2.0     | 12/05/2026  | Reescritura completa: RF/RNF formales (ISO/IEC 25010), matriz de riesgos, cronograma de hitos, restricciones técnicas y bibliografía académica. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
+| 2.1     | 24/05/2026  | Actualización de referencias de despliegue: migración de AWS Lightsail Containers + RDS a instancia EC2 con Docker Compose. | Sebastian Puentes, Karina Cantillo, Danay Pereira |
 
 ---
 
@@ -23,7 +24,7 @@
 
 **Home-Health** es una plataforma web para la gestión integral de farmacias de barrio que permite a clientes finales solicitar medicamentos a domicilio y a administradores operar el ciclo completo del negocio (catálogo, inventario, pedidos, vencimientos, reportes y notificaciones) desde una única aplicación.
 
-El sistema se diseña como un **monolito modular** con backend NestJS, base de datos PostgreSQL administrada por Prisma ORM, frontend Next.js 15 y despliegue contenedorizado sobre AWS Lightsail Containers y Amazon RDS. La arquitectura está documentada mediante el modelo **C4** (Brown, 2018) y registrada en **12 ADRs** que justifican técnicamente cada decisión de diseño con referencia a literatura especializada (Bass, Clements & Kazman, 2021; Fowler, 2002; Richardson, 2018).
+El sistema se diseña como un **monolito modular** con backend NestJS, base de datos PostgreSQL administrada por Prisma ORM, frontend Next.js 15 y despliegue contenedorizado sobre una instancia **AWS EC2** mediante Docker Compose. La arquitectura está documentada mediante el modelo **C4** (Brown, 2018) y registrada en **12 ADRs** que justifican técnicamente cada decisión de diseño con referencia a literatura especializada (Bass, Clements & Kazman, 2021; Fowler, 2002; Richardson, 2018).
 
 El proyecto cumple un doble propósito: (i) académico, como ejercicio formal de aplicación de principios de arquitectura de software; (ii) sectorial, como propuesta tecnológica para un nicho real del comercio farmacéutico colombiano, regulado por el Decreto 2200 de 2005 del Ministerio de Salud y Protección Social.
 
@@ -72,7 +73,7 @@ Diseñar e implementar un sistema de información web para la gestión integral 
 5. Implementar 14+ Historias de Usuario priorizadas con técnica **MoSCoW** y mapeadas mediante **Story Mapping** (Patton, 2014).
 6. Aplicar patrones de diseño **GoF** (Strategy, State) y principios **SOLID** en la implementación.
 7. Establecer una pirámide de pruebas (Unit, Integración, E2E) según Cohn (2009).
-8. Desplegar el sistema en **AWS** con pipeline CI/CD reproducible (GitHub Actions + Lightsail Containers + RDS).
+8. Desplegar el sistema en **AWS** con pipeline CI/CD reproducible (GitHub Actions + EC2 + Docker Compose).
 
 ---
 
@@ -175,7 +176,7 @@ Los RNF se organizan según las **ocho características de calidad de la ISO/IEC
 | :------ | :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
 | RNF-10  | Disponibilidad del sistema en horario operativo (07:00–22:00 hora Bogotá).           | ≥ 99% mensual (downtime acumulado < 5 horas/mes).                                       |
 | RNF-11  | Integridad transaccional en operaciones de stock.                                    | Probabilidad de stock negativo o inconsistente bajo concurrencia = 0% (validado por trigger nightly). |
-| RNF-12  | Backups automáticos diarios de la base de datos.                                     | Retención de 7 días en RDS con punto de restauración cada 5 minutos.                   |
+| RNF-12  | Backups automáticos diarios de la base de datos.                                     | Backup diario ejecutado con `pg_dump` sobre el contenedor de base de datos en EC2, con retención de 7 días. |
 
 ### 5.6 Seguridad
 
@@ -192,15 +193,15 @@ Los RNF se organizan según las **ocho características de calidad de la ISO/IEC
 | :------ | :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
 | RNF-17  | Cobertura de pruebas unitarias.                                                      | ≥ 70% sobre servicios, máquinas de estado y strategies.                                |
 | RNF-18  | Cobertura de pruebas de integración.                                                 | ≥ 40% sobre endpoints REST.                                                            |
-| RNF-19  | Type-safety end-to-end.                                                              | `tsc --noEmit` y `tsc --noEmit` en backend pasan en cada commit.                       |
+| RNF-19  | Type-safety end-to-end.                                                              | `tsc --noEmit` en backend y frontend pasan en cada commit.                             |
 | RNF-20  | Documentación de API.                                                                | OpenAPI 3.0 autogenerada por NestJS Swagger.                                            |
 
 ### 5.8 Portabilidad
 
 | ID      | Requisito                                                                            | Métrica                                                                                |
 | :------ | :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| RNF-21  | Despliegue contenedorizado reproducible.                                             | `docker-compose up` levanta el stack completo en local en ≤ 60 s.                       |
-| RNF-22  | Independencia del proveedor cloud para el código aplicativo.                         | El backend no usa servicios AWS-específicos en el código (solo SDK de S3 y CW).        |
+| RNF-21  | Despliegue contenedorizado reproducible.                                             | `docker compose up --build` levanta el stack completo en local en ≤ 60 s.              |
+| RNF-22  | Independencia del proveedor cloud para el código aplicativo.                         | El backend no usa servicios AWS-específicos en el código de aplicación.                |
 
 ---
 
@@ -226,10 +227,10 @@ Se utiliza la matriz de riesgos **probabilidad × impacto** propuesta por **PMI 
 | R-01 | Falla en despliegue AWS durante sustentación del Hito 2.                                | Media        | Alto    | **Alto** | Pipeline CI/CD probado en staging; presentación con video de respaldo del flujo crítico.                  |
 | R-02 | Curva de aprendizaje de Prisma + NestJS retrasa entregas.                                | Media        | Medio   | Medio   | Spike de auth (HU19) en Sprint 0; pair programming en endpoints críticos.                                  |
 | R-03 | Inconsistencia de stock por concurrencia en pedidos simultáneos.                         | Baja         | Alto    | Medio   | Bloqueo pesimista `SELECT FOR UPDATE` + trigger nightly de verificación (ver ADR-012).                     |
-| R-04 | Costo de AWS supera presupuesto del proyecto.                                            | Baja         | Medio   | Bajo    | Uso exclusivo de capa gratuita; alertas de facturación AWS Budget configuradas en USD 30.                  |
+| R-04 | Costo de AWS supera presupuesto del proyecto.                                            | Baja         | Medio   | Bajo    | Uso exclusivo de capa gratuita (EC2 t2.micro); alertas de facturación AWS Budget configuradas en USD 30.  |
 | R-05 | Pérdida de un miembro del equipo (incapacidad, retiro).                                  | Baja         | Alto    | Medio   | Documentación obligatoria de cada módulo; código reviewable por cualquier miembro.                          |
 | R-06 | Vulnerabilidad de seguridad detectada cerca de la entrega.                               | Media        | Alto    | **Alto** | OWASP ZAP scan automatizado en CI; dependabot habilitado; revisión manual de Helmet/CORS antes de release. |
-| R-07 | Backup de base de datos no se ejecuta correctamente.                                     | Baja         | Alto    | Medio   | Restauración de prueba semanal en ambiente de staging.                                                     |
+| R-07 | Backup de base de datos no se ejecuta correctamente.                                     | Baja         | Alto    | Medio   | Restauración de prueba semanal con `pg_dump` en ambiente de staging.                                       |
 | R-08 | Cambios regulatorios del Decreto 2200 durante el proyecto.                                | Muy baja     | Medio   | Bajo    | Monitoreo de actualizaciones MinSalud; arquitectura de audit log flexible para acomodar campos adicionales. |
 | R-09 | Próximos a vencer no se detectan correctamente (bug en lógica de fechas).                | Media        | Medio   | Medio   | Pruebas unitarias específicas sobre `classifyExpiry()` con casos límite (día actual, día 30, día 31).      |
 | R-10 | Carga inicial de datos (seed) corrupta entre ambientes.                                  | Media        | Bajo    | Bajo    | Script de seed versionado en `prisma/seed.ts` ejecutado en pipeline.                                       |
@@ -247,22 +248,23 @@ Se utiliza la matriz de riesgos **probabilidad × impacto** propuesta por **PMI 
 
 ## 8. Cronograma de Hitos
 
-El proyecto se ejecuta en **6 semanas** divididas en **un Sprint 0** y **3 Sprints regulares de 2 semanas**. El cronograma sigue la estructura definida en el Story Map ([`storymap.md`](./01-historias-de-usuario/storymap.md)).
+El proyecto se ejecuta en **5 semanas efectivas** divididas en **Sprint 0 y 2 sprints principales**, más una fase corta de cierre. El cronograma sigue la estructura definida en el Story Map ([`storymap.md`](./01-historias-de-usuario/storymap.md)).
 
 | Hito  | Fechas               | Entregable                                                                                                        | Estado     |
 | :---- | :------------------- | :---------------------------------------------------------------------------------------------------------------- | :--------- |
 | **H0** | 28 abr – 04 may     | Sprint 0 — Spikes técnicos (HU19, HU20, HU21). Setup repos, ADRs base, MER inicial, docker-compose.               | ✅ Cumplido |
-| **H1** | 05 may – 11 may     | Sprint 1 — Documentación formal (Informe, ADR, MER, HU, Storymaps). Walking skeleton parcial.                     | 🔄 En curso |
-| **H2** | 12 may – 18 may     | Sprint 1 cont. — Walking skeleton completo (HU01, HU02, HU07, HU06, HU09, HU11, HU10).                            | ⏳ Próximo  |
-| **H3** | 19 may – 25 may     | Sprint 2 — Enrichment crítico (HU03, HU04, HU05, HU08, HU12, HU14, HU16). **Sustentación AWS (Hito 2 oficial)**.   | ⏳ Próximo  |
-| **H4** | 26 may – 08 jun     | Sprint 3 — Soporte y reportes (HU13, HU15, HU18, HU22 observabilidad).                                              | ⏳ Próximo  |
-| **H5** | 09 jun – 15 jun     | Estabilización, performance, accesibilidad, video de demo. Entrega final.                                          | ⏳ Próximo  |
+| **H1** | 05 may – 11 may     | Sprint 1 — Documentación formal (Informe, ADR, MER, HU, Storymaps). Walking skeleton parcial.                     | ✅ Cumplido |
+| **H2** | 12 may – 18 may     | Sprint 1 cont. — Walking skeleton completo (HU01, HU02, HU07, HU06, HU09, HU11, HU10).                            | 🔄 En curso |
+| **H3** | 19 may – 25 may     | Sprint 2 — Enrichment crítico (HU03, HU04, HU05, HU08, HU12, HU14, HU16) + Sustentación AWS (Hito oficial).       | 🔄 En curso  |
+| **H4** | 23 may – 24 may     | QA final — pruebas, accesibilidad, ajustes finales.                                                                | 🔄 En curso  |
+| **H5** | **25 may**          | **Entrega final del proyecto + cierre del sistema + demo final.**                                                  | ⏳ Próximo
+
 
 ### 8.1 Diagrama de cronograma (Gantt simplificado)
 
 ```mermaid
 gantt
-    title Cronograma Home-Health 2026-A
+    title Cronograma Home-Health 2026-A (ajustado)
     dateFormat YYYY-MM-DD
     axisFormat %d-%b
 
@@ -270,19 +272,18 @@ gantt
     Spikes técnicos       :done, s0, 2026-04-28, 7d
 
     section Sprint 1
-    Documentación H1      :active, doc1, 2026-05-05, 7d
-    Walking skeleton      :ws, after doc1, 7d
+    Documentación H1      :done, doc1, 2026-05-05, 7d
+    Walking skeleton      :active, ws, after doc1, 7d
 
     section Sprint 2
-    Enrichment crítico    :enr, 2026-05-19, 7d
+    Enrichment crítico    :enr, 2026-05-19, 5d
     Sustentación AWS H2   :crit, milestone, sus, 2026-05-25, 0d
 
-    section Sprint 3
-    Reportes y soporte    :rep, 2026-05-26, 14d
+    section QA final
+    QA + accesibilidad    :qa, 2026-05-23, 2d
 
-    section Estabilización
-    QA + accesibilidad    :qa, 2026-06-09, 7d
-    Entrega final         :crit, milestone, end, 2026-06-15, 0d
+    section Entrega
+    Entrega final         :crit, milestone, end, 2026-05-25, 0d
 ```
 
 ---
