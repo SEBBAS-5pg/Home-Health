@@ -12,11 +12,11 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-hh_pass}
       POSTGRES_DB: ${DB_NAME:-home_health}
     ports:
-      - '${DB_PORT:-5432}:5432'
+      - "5432:5432"
     volumes:
       - hh_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-hh_user} -d ${DB_NAME:-home_health}']
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hh_user} -d ${DB_NAME:-home_health}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -33,40 +33,43 @@ services:
       db:
         condition: service_healthy
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
+      NODE_ENV: production
       PORT: 4000
+
       DATABASE_URL: postgresql://${DB_USER:-hh_user}:${DB_PASSWORD:-hh_pass}@db:5432/${DB_NAME:-home_health}?schema=public
+
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-access-secret-change-in-prod}
-      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_ACCESS_EXPIRES_IN: 15m
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-change-in-prod}
-      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
-      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-12}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
-      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@home-health.app}
-      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin12345!}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      JWT_REFRESH_EXPIRES_IN: 7d
+
+      BCRYPT_ROUNDS: 12
+
+      # IMPORTANTE: API debe aceptar frontend público
+      CORS_ORIGIN: http://3.85.45.139:3000
+
+      SEED_ADMIN_EMAIL: admin@home-health.app
+      SEED_ADMIN_PASSWORD: Admin12345!
+      LOG_LEVEL: info
     ports:
-      - '${API_PORT:-4000}:4000'
+      - "4000:4000"
     networks:
       - hh_net
-    # El propio Dockerfile corre `prisma migrate deploy` antes de arrancar.
-    # La primera vez que la BD está vacía, las migraciones la dejan lista.
 
   web:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # NEXT_PUBLIC_API_URL se inlinea en build-time. En dev local, el navegador
-        # pega contra http://localhost:4000/api (el puerto publicado del api).
-        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:4000/api}
-        NEXT_PUBLIC_USE_MOCK: 'false'
+        # ESTE ES EL CAMBIO CRÍTICO
+        NEXT_PUBLIC_API_URL: http://3.85.45.139:4000/api
+        NEXT_PUBLIC_USE_MOCK: "false"
     container_name: hh-web
     restart: unless-stopped
     depends_on:
       - api
     ports:
-      - '${WEB_PORT:-3000}:3000'
+      - "3000:3000"
     networks:
       - hh_net
 
