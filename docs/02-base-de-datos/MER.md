@@ -240,13 +240,18 @@ erDiagram
 
     USER ||--o{ ORDER : places
     USER ||--o{ NOTIFICATION : receives
-
-    ORDER ||--o{ ORDER_ITEM : contains
+    USER ||--o{ AUDIT_LOG : performs
+    USER ||--o{ ORDER_STATUS_HISTORY : changes
 
     CATEGORY ||--o{ PRODUCT : classifies
 
     PRODUCT ||--o{ ORDER_ITEM : included_in
     PRODUCT ||--o{ INVENTORY_MOVEMENT : registers
+    PRODUCT ||--o{ NOTIFICATION : related_product
+
+    ORDER ||--o{ ORDER_ITEM : contains
+    ORDER ||--o{ ORDER_STATUS_HISTORY : tracks
+    ORDER ||--o{ NOTIFICATION : related_order
 
     USER {
         uuid id PK
@@ -276,7 +281,7 @@ erDiagram
         date expiration_date
         timestamp created_at
         timestamp updated_at
-}
+    }
 
     INVENTORY_MOVEMENT {
         uuid id PK
@@ -340,23 +345,7 @@ erDiagram
         text reason
         timestamp changed_at
     }
-
-    PASSWORD_RESET_TOKEN {
-        uuid id PK
-        uuid user_id FK
-        string token_hash
-        timestamp expires_at
-        timestamp used_at
-        timestamp created_at
-    }
-
-    USER ||--o{ AUDIT_LOG : performs
-    USER ||--o{ PASSWORD_RESET_TOKEN : requests
-    USER ||--o{ ORDER_STATUS_HISTORY : changes
-    ORDER ||--o{ ORDER_STATUS_HISTORY : tracks
-    ORDER ||--o{ NOTIFICATION : triggers
-    PRODUCT ||--o{ NOTIFICATION : triggers
-````
+```
 
 ---
 
